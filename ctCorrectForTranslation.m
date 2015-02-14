@@ -12,7 +12,10 @@ function recon = ctCorrectFortranslation( sinogram, delta, nDetectors, ...
   applyD1Trans = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2Trans = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-
+  [nrmK,lambdaVals] = estimateNormByPowerIterationED( ...
+    applyE,applyETrans,applyD1,applyD1Trans, ...
+    applyD2,applyD2Trans,x0,maxIters);
+  
   sizeSino = size(sinogram);
   xE = zeros( sizeSino(2) );
   xD1 = zeros( sizeSino(2) );
