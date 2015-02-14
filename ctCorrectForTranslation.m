@@ -17,10 +17,13 @@ function recon = ctCorrectFortranslation( sinogram, delta, nDetectors, ...
   xE = zeros( sizeSino(2) );
   xD1 = zeros( sizeSino(2) );
   xD2 = zeros( sizeSino(2) );
+  xBarE = zeros( sizeSino );
+  xBarD1 = zeros( sizeSino );
+  xBarD2 = zeros( sizeSino );
   yE = zeros( sizeSino );
   yD1 = zeros( sizeSino(2) );
   yD2 = zeros( sizeSino(2) );
-  xbar = zeros( size(sinogram) );
+  
 
   nIter = 1000;
   
