@@ -14,10 +14,19 @@ function recon = ctCorrectFortranslation( sinogram, delta, nDetectors, ...
   nIter = 1000;
   
   for i=1:nIter
-    y = 
+%     y = 
   end
   
-  nrmK = estimateNormByPowerIteration(appK,appKTrans,randn(M,1),1000);
+  K = [3 0 0;
+       0 2 0;
+       0 0 1];
+  
+  M = size(K,2);
+  
+  applyK = @(x) K*x;
+  applyKTrans = @(x) K'*x;
+  
+  nrmK = estimateNormByPowerIteration(applyK,applyKTrans,randn(M,1),1000);
   sigma = 1/(tau*nrmK^2);
   
   
