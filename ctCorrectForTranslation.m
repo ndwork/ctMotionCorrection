@@ -7,27 +7,27 @@ function recon = ctCorrectFortranslation( sinogram, delta, nDetectors, ...
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
-  x = zeros( size(sinogram) );
-  y = zeros( size(sinogram) );
+  applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1,:), zeros(nRows,1));
+  applyD2 = @(u) cat(1, u(2:end,:) - u(1:end-1,:), zeros(1,nCols));
+  applyD1Trans = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
+  applyD2Trans = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
+
+
+  sizeSino = size(sinogram);
+  xE = zeros( sizeSino(2) );
+  xD1 = zeros( sizeSino(2) );
+  xD2 = zeros( sizeSino(2) );
+  yE = zeros( sizeSino );
+  yD1 = zeros( sizeSino(2) );
+  yD2 = zeros( sizeSino(2) );
   xbar = zeros( size(sinogram) );
 
   nIter = 1000;
   
   for i=1:nIter
-%     y = 
+
   end
   
-  K = [3 0 0;
-       0 2 0;
-       0 0 1];
-  
-  M = size(K,2);
-  
-  applyK = @(x) K*x;
-  applyKTrans = @(x) K'*x;
-  
-  nrmK = estimateNormByPowerIteration(applyK,applyKTrans,randn(M,1),1000);
-  sigma = 1/(tau*nrmK^2);
   
   
 end

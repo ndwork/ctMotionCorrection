@@ -33,18 +33,22 @@ function sinogram = radonWithTranslation( img, delta, nDetectors, ...
   end
 
   sinogram = zeros( nTheta, nDetectors );
-  parfor th=1:numel(thetas)
+  %parfor th=1:numel(thetas)
+for th=1:numel(thetas)
     theta = thetas_deg(th);
-    thisTrans_m = translation(th,:);
+    thisTrans_m = translations(th,:);
     thisTrans_pix = thisTrans_m / delta;
-    translated = imageTranslation( radiusImg, trans_pix );
+    translated = translateImg( radiusImg, thisTrans_pix );
+    rotImg = imrotate( translated, theta, 'bilinear','crop' );
     sumResult = sum( rotImg, 1 ) * delta;
 
     interped = interp1( locs, sumResult, dLocs,'linear',0 );
-
+    
     sinogram(th,:) = interped;
-    if mod(th,10)==0 disp(['ctRadon Theta: ', num2str(th), ' of ', ...
-        num2str(numel(thetas)) ]); end;
+    if mod(th,10)==0
+      disp(['ctRadon Theta: ', num2str(th), ' of ', ...
+        num2str(numel(thetas)) ]);
+    end;
   end
 
 end
