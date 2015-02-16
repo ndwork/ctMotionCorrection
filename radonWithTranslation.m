@@ -33,8 +33,7 @@ function sinogram = radonWithTranslation( img, delta, nDetectors, ...
   end
 
   sinogram = zeros( nTheta, nDetectors );
-  %parfor th=1:numel(thetas)
-for th=1:numel(thetas)
+  parfor th=1:numel(thetas)
     theta = thetas_deg(th);
     thisTrans_m = translations(th,:);
     thisTrans_pix = thisTrans_m / delta;
@@ -46,7 +45,7 @@ for th=1:numel(thetas)
     
     sinogram(th,:) = interped;
     if mod(th,10)==0
-      disp(['ctRadon Theta: ', num2str(th), ' of ', ...
+      disp(['radonWithTranslation Theta: ', num2str(th), ' of ', ...
         num2str(numel(thetas)) ]);
     end;
   end
