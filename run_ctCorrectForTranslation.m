@@ -11,8 +11,8 @@ function run_ctCorrectForTranslation
   thetas = 0:dTheta:pi-dTheta;
   nThetas = numel(thetas);
 
-  maxVerticalShift = 0.01;
-  maxHorizontalShift = 0.02;
+  maxVerticalShift = 0.01;      % Vertical shift in meters
+  maxHorizontalShift = 0.02;    % Horiztonal shift in meters
   translations = zeros( nThetas, 2 );
 %   translations(:,1) = linspace(0,maxVerticalShift,nThetas);
 %   translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
@@ -28,7 +28,6 @@ load 'phSinogram.mat'
 
   recon = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
     thetas, translations, Nx, Ny, pixSize );
-
 
 end
 

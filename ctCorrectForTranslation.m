@@ -1,6 +1,7 @@
 
-function recon = ctCorrectForTranslation( sinogram, delta, nDetectors, ...
-  dSize, thetas, translations )
+function recon = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
+  thetas, translations, Nx, Ny, pixSize )
+
   % This function uses Pock-Chambolle to determine the reconstruction
   % image based on the known translations
   % sinogram is an MxN array
@@ -16,47 +17,55 @@ function recon = ctCorrectForTranslation( sinogram, delta, nDetectors, ...
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  applyE = @(u) radonWithTranslation( u, delta, nDetectors, ...
-    dSize, thetas, translations );
-  
+  applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
+    detSize, thetas, translations );
+
   cx = 0;  cy = 0;
-  applyET = @(u) backprojectionWithTranslation( u, thetas, dSize, cx, cy, nCols, nRows, ...
-    dSize, dSize, translations );
+  applyET = @(u) backprojectionWithTranslation( sinogram, thetas, detSize, ...
+    cx, cy, Nx, Ny, pixSize, translations );
+  
   
   maxIters = 1000;
   x0 = rand( sizeSino(2) );
-  [nrmK, lambdaVals] = estimateNormByPowerIterationED( ...
+  [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
     applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
   figure;  plot(lambdaVals);  title('Lambda v Iteration');
-
 save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   
-  xE = zeros( nRows, nCols );
-  xD1 = zeros( nRows, nCols );
-  xD2 = zeros( nRows, nCols );
-  xBarE = zeros( sizeSino );
-  xBarD1 = zeros( sizeSino );
-  xBarD2 = zeros( sizeSino );
+  x = zeros( nRows, nCols );
+  xBar = zeros( sizeSino );
   yE = zeros( sizeSino );
   yD1 = zeros( nRows, nCols );
   yD2 = zeros( nRows, nCols );
 
 
-  nIter = 1000;
-
   if sigma*tau > 1 / (nrmK*nrmK)
     error('Improperly chosen step sizes');
   end
 
+  theta = 1;
+  nIter = 1000;
   for i=1:nIter
+    % Update y
+    tmpE = yE + sigma*applyE( xBar );
+    tmpD1 = yD1 + sigma*applyD1( xBar );
+    tmpD2 = yD2 + sigma*applyD2( xBar );
 
+    yE = ( tmpE - sigma*sinogram ) / ( sigma + 1 );
+    yD1 = min( tmpD1, gamma );
+    yD1 = max( yD1, -gamma );
+    yD2 = min( tmpD2, gamma );
+    yD2 = max( yD2, -gamma );
+
+    % Update x
+    lastX = x;
+    tmp = x - tau * ( applyET(yE) + applyD1T(yD1) + applyD2T(yD2) );
+    x = max( tmp, 0 );
+
+    % Update xBar
+    xBar = x + theta( x - lastX );
   end
 
-
-
+  recon = x;
 end
-
-
-
-
 
