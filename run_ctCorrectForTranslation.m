@@ -4,14 +4,9 @@ function run_ctCorrectForTranslation
   addpath(genpath('.'));
 
   im = phantom();
-  delta = 0.001;
-
-  figure( 'name', 'Original Image' );
-  imshow( im, [] );
-
 
   nDetectors = 500;
-  dSize = 0.001;
+  detSize = 0.001;
   dTheta = 1 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
   nThetas = numel(thetas);
@@ -23,15 +18,16 @@ function run_ctCorrectForTranslation
 %   translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
 
   % Reconstruction parameters
-  cx = 0;   Nx=256;   dx=delta;
-  cy = 0;   Ny=256;   dy=delta;
+  cx = 0;   Nx=256;
+  cy = 0;   Ny=256;
+  pixSize = 0.001;
 
-  %sinogram = radonWithTranslation( im, delta, nDetectors, dSize, ...
+  %sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
   %  thetas, translations );
-load 'junk.mat'
+load 'phSinogram.mat'
 
-  recon = ctCorrectForTranslation( sinogram, delta, nDetectors, dSize, ...
-    thetas, translations );
+  recon = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
+    thetas, translations, Nx, Ny, pixSize );
 
 
 end
