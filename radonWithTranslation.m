@@ -12,9 +12,7 @@ function sinogram = radonWithTranslation( img, delta, nDetectors, ...
   dOffset=0;  % center channel offset
 
   nTheta = numel(thetas);
-
-  dLocs = ( [0:nDetectors-1] - floor(0.5*nDetectors) ) * dSize - dOffset;
-
+  dLocs = ( [0:nDetectors-1] - 0.5*(nDetectors-1) ) * dSize - dOffset;
   thetas_deg = thetas * 180/pi;
 
   Ny = size( img, 1 );  halfY = Ny/2;
@@ -24,7 +22,8 @@ function sinogram = radonWithTranslation( img, delta, nDetectors, ...
   xs = xs - halfX;
   ys = ys - halfY;
   radiusMask = sqrt( xs.*xs + ys.*ys ) < min(Nx/2,Ny/2);
-  radiusImg = img .* radiusMask;
+%   radiusImg = img .* radiusMask;
+radiusImg = img;
 
   if mod( Nx, 2 )==0
     locs = ( ([0:Nx-1]) - 0.5*Nx + 0.5 ) * delta;
@@ -42,8 +41,8 @@ function sinogram = radonWithTranslation( img, delta, nDetectors, ...
     sumResult = sum( rotImg, 1 ) * delta;
 
     interped = interp1( locs, sumResult, dLocs,'linear',0 );
-    
     sinogram(th,:) = interped;
+
     if mod(th,10)==0
       disp(['radonWithTranslation Theta: ', num2str(th), ' of ', ...
         num2str(numel(thetas)) ]);

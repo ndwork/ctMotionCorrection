@@ -19,8 +19,8 @@ function run_ctCorrectForTranslation
   maxVerticalShift = 0.01;
   maxHorizontalShift = 0.02;
   translations = zeros( nThetas, 2 );
-  translations(:,1) = linspace(0,maxVerticalShift,nThetas);
-  translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
+%   translations(:,1) = linspace(0,maxVerticalShift,nThetas);
+%   translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
 
   % Reconstruction parameters
   cx = 0;   Nx=256;   dx=delta;

@@ -5,10 +5,13 @@ function [transImg] = translateImg(img,trans)
   numX = size(img,2);
   numY = size(img,1);
 
+  hTrans = mod(trans(2),numX);
+  vTrans = mod(trans(1),numY);
+  
   % x and y coordinates of original image
   x = [1:1:numX];
   y = [1:1:numY];
-  [x y] = meshgrid(x,y);
+  [x, y] = meshgrid(x,y);
   
   % pad the x coords, y coords, and data
   padX = [x (numX+1)*ones(size(x,1),1)];
@@ -21,7 +24,7 @@ function [transImg] = translateImg(img,trans)
   padImg = [padImg; padImg(1,:)];
   
   % find x coordinates of translated image
-  transX = x - trans(2);
+  transX = x - hTrans;
   % check for pixels falling off from right
   tmpX = transX > numX;
   transX = transX - tmpX*numX;
@@ -30,7 +33,7 @@ function [transImg] = translateImg(img,trans)
   transX = transX + tmpX*numX;
   
   % find y coordinates of translated image
-  transY = y - trans(1);
+  transY = y - vTrans;
   % check for pixels falling off from top
   tmpY = transY > numY;
   transY = transY - tmpY*numY;
