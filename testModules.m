@@ -117,6 +117,26 @@ function [] = testModules()
       num2str(adjointError)])
   end
 
+  %% Test estimating the norm of K by power iteration
+  sizeX = 20;
+  sizeY = 20;
+  
+  test = rand(sizeX,sizeY);
+  applyA = @(u) test*u;
+  applyATrans = @(u) test'*u;
+  
+  power = estimateNormByPowerIteration(applyA,applyATrans,...
+    rand(sizeX,sizeY));
+  power2 = normest(test);
+  
+  error = abs(power - power2);
+  if error < 1e-9
+    disp('Test of norm estimation: Passed')
+  else
+    disp(['Test of norm estimation: Failed with error: ' ...
+      num2str(error)])
+  end
+  
 end
 
 function [out] = testAdjoint_translateImg(Mx,Nx,My,Ny)
