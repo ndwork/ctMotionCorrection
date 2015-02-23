@@ -46,6 +46,8 @@ save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   theta = 1;
   nIter = 1000;
   for i=1:nIter
+    disp(['Working on iteration: ', num2str(i), ' of ', num2str(nIter) ]);
+    
     % Update y
     tmpE = yE + sigma*applyE( xBar );
     tmpD1 = yD1 + sigma*applyD1( xBar );
