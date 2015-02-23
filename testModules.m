@@ -1,16 +1,18 @@
 function [] = testModules()
   close all; clear;
+  profile on;
 
   %% Test image translation function
   x = phantom();
-  figure();
-  imshow(x,[])
-  title('Original Image')
-  trans = [12.5 3.4];
+  trans = [-12 -3];
+  trueTrans = circshift( x, trans );
   xTrans = translateImg(x,trans);
-  figure();
-  imshow(xTrans,[])
-  title('Translated Image')
+  error = max( abs( trueTrans(:) - xTrans(:) ) );
+  if error < 1d-12
+    disp('Test of translate image: Passed');
+  else
+    disp(['Test of translate image: Failed with error ', num2str(error)]);
+  end
   
   %% Test adjoint of D1
   nDetectors = 500;
@@ -136,7 +138,9 @@ function [] = testModules()
     disp(['Test of norm estimation: Failed with error: ' ...
       num2str(error)])
   end
-  
+
+  profile off;
+  profile viewer;
 end
 
 function [out] = testAdjoint_translateImg(Mx,Nx,My,Ny)

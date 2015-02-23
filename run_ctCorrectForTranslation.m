@@ -12,16 +12,16 @@ function run_ctCorrectForTranslation
   nThetas = numel(thetas);
   
   % Reconstruction parameters
-  cx = 0;   Nx=256;
-  cy = 0;   Ny=256;
+  cx = 0;   nCols=256;
+  cy = 0;   nRows=256;
   pixSize = 0.001; % meters / pixel
 
   maxVerticalShift = 0.01; % in meters
   maxHorizontalShift = 0.02; % in meters
   translations = zeros( nThetas, 2 );
-  translations(:,1) = linspace(0,maxVerticalShift,nThetas);
-  translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
-  
+%   translations(:,1) = linspace(0,maxVerticalShift,nThetas);
+%   translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
+
   % pad the phantom image so that it always stays in the field of view
   xShiftPix = maxHorizontalShift / pixSize;
   yShiftPix = maxVerticalShift / pixSize;
@@ -40,10 +40,17 @@ function run_ctCorrectForTranslation
   %  thetas, translations );
 load 'phSinogram.mat'
 
-  recon = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
-    thetas, translations, Nx, Ny, pixSize );
+  tic;
+  [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
+    thetas, translations, nCols, nRows, pixSize );
+  timeTaken = toc;
 
-
+  disp(['Time taken: ', num2str(timeTaken)]);
+  figure; imshow( recon, [] );  title('Reconstructed image');
+  
+  figure; plot( costs, 'LineWidth', 2 );
+  xlabel('Iteration'); ylabel('Cost Function');
+  
 end
 
 

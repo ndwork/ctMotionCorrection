@@ -1,5 +1,7 @@
 function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
-  cx, cy, Nx, Ny, pixSize, translations )
+  cx, cy, Nx, Ny, pixSize, translations, verbose )
+
+  if nargin < 10, verbose=0; end;
 
   [nThetas, nDetectors] = size(sinogram);
 
@@ -40,7 +42,7 @@ function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
     translated = translateImg( interpedImg, -thisTrans_pix );
 
     bp = bp + translated;
-    if mod(thIndx,10)==0
+    if verbose && mod(thIndx,10)==0
       disp([ 'applyETrans Theta Indx / Theta: ', ...
         num2str(thIndx), '/', num2str(theta) ]);
     end

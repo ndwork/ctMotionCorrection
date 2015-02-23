@@ -1,6 +1,6 @@
 
 function sinogram = radonWithTranslation( img, delta, nDetectors, ...
-  detSize, thetas, translations )
+  detSize, thetas, translations, verbose )
   % img:  2D array - will take the Radon transform of this image
   % delta: horizontal and vertical size of pixel (assumed square)
   % nDetectors: the number of detectors
@@ -9,6 +9,8 @@ function sinogram = radonWithTranslation( img, delta, nDetectors, ...
   % translations is a Nx2 array specifying [y,x] meters translated
   %   per radian of rotation
 
+  if nargin < 7, verbose = 0; end;
+  
   dOffset=0;  % center channel offset
 
   nTheta = numel(thetas);
@@ -43,10 +45,10 @@ radiusImg = img;
     interped = interp1( locs, sumResult, dLocs,'linear',0 );
     sinogram(th,:) = interped;
 
-    if mod(th,10)==0
+    if verbose && mod(th,10)==0
       disp(['radonWithTranslation Theta: ', num2str(th), ' of ', ...
         num2str(numel(thetas)) ]);
-    end;
+    end
   end
 
 end

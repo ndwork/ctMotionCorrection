@@ -7,7 +7,7 @@ function [nrm,lambdaVals] = estimateNormKByPowerIteration( ...
     maxIters = 500;
   end
 
-  stopTol = 1e-10;
+  stopTol = 1e-5;
 
   x = x0;
   lambdaPrev = 0;
