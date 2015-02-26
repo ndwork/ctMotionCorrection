@@ -1,13 +1,14 @@
 
 function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
-  detSize, thetas, translations, nCols, nRows, pixSize, sigma, tau )
+  detSize, thetas, translations, nCols, nRows, pixSize, nrmK, ...
+  sigma, tau )
   % This function uses Pock-Chambolle to determine the reconstruction
   % image based on the known translations
   % sinogram is an MxN array
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
-  if nargin < 9, sigma=1; end;
+  if nargin < 10, sigma=1; end;
 
   gamma = 1d-5;   % Regularization parameter
   
@@ -23,15 +24,6 @@ function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
   applyET = @(u) backprojectionWithTranslation( sinogram, thetas, detSize, ...
     cx, cy, nCols, nRows, pixSize, translations );
 
-
-  maxIters = 1000;
-  x0 = rand( nRows, nCols );
-  %[nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
-  %  applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
-  %figure;  plot(lambdaVals);  title('Lambda v Iteration');
-load 'nrmK.mat';
-%save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
-
   nThetas = numel( thetas );
   x = ones( nRows, nCols );
   xBar = ones( nRows, nCols );
@@ -39,7 +31,7 @@ load 'nrmK.mat';
   yD1 = ones( nRows, nCols );
   yD2 = ones( nRows, nCols );
 
-  if nargin < 9, tau = 1 / (nrmK*nrmK*sigma) * 0.999; end;
+  if nargin < 10, tau = 1 / (nrmK*nrmK*sigma) * 0.999; end;
   
   if sigma*tau > 1 / (nrmK*nrmK)
     error('Improperly chosen step sizes');

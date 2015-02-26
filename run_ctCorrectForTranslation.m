@@ -36,13 +36,32 @@ function run_ctCorrectForTranslation
     im = [im; zeros(ceil(abs(yShiftPix)),size(im,2))];
   end
 
-  %sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
-  %  thetas, translations );
-load 'phSinogram.mat'
+%   sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
+%    thetas, translations );
+%   save('phSinogram.mat','sinogram')
+  load 'phSinogram.mat'
+
+%   maxIters = 1000;
+%   x0 = rand( nRows, nCols );
+%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
+%    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
+%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
+  load 'nrmK.mat';
+
+  minStep = 1e-5; 
+  maxStep = 1e5;
+  [optimalSigma, optimalTau] = findBestStepSizes(minStep,... 
+  maxStep, minStep, maxStep, nrmK, sinogram,...
+  nDetectors, detSize, thetas, translations, nCols, nRows, pixSize);
+%   load 'optimalSteps.mat'
+  save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
+
 
   tic;
   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
-    thetas, translations, nCols, nRows, pixSize );
+    thetas, translations, nCols, nRows, pixSize, nrmK, ...
+    optimalSigma, optimalTau );
   timeTaken = toc;
 
   disp(['Time taken: ', num2str(timeTaken)]);
