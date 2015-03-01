@@ -34,9 +34,8 @@ function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
     projections = pixDs .* cos( angles - theta );
     interped = interp1( dLocs, sinogram(thIndx,:), projections, ...
       'linear', 'extrap') * pixSize;
-
     interpedImg = reshape( interped, Ny, Nx );
-
+    
     thisTrans_m = translations(thIndx,:);
     thisTrans_pix = thisTrans_m ./ [pixSize,pixSize];
     translated = translateImg( interpedImg, -thisTrans_pix );

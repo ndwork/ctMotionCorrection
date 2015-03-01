@@ -9,8 +9,10 @@ function run_ctCorrectForTranslation
   pixSize = 0.001; % meters / pixel
   
   im = phantom();
-  im = imresize( im, [nCols nRows] );
+  im = imresize( im, [nCols nRows], 'bilinear' );
 
+figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
+  
   detSize = 0.001;
   dTheta = 2 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
@@ -26,23 +28,17 @@ function run_ctCorrectForTranslation
 
   % pad the phantom image so that it always stays in the field of view
   xShiftPix = maxHorizontalShift / pixSize;
+  xPadding = zeros(size(im,1),ceil(abs(xShiftPix)));
+  im = [xPadding im xPadding];
   yShiftPix = maxVerticalShift / pixSize;
-  if xShiftPix >= 0 
-    im = [im zeros(size(im,1),ceil(xShiftPix))];
-  else
-    im = [zeros(size(im,1),ceil(abs(xShiftPix))) im];
-  end
-  if yShiftPix >= 0
-    im = [zeros(ceil(yShiftPix),size(im,2)); im];
-  else
-    im = [im; zeros(ceil(abs(yShiftPix)),size(im,2))];
-  end
+  yPadding = zeros(ceil(abs(yShiftPix)),size(im,2));
+  im = [ yPadding; im; yPadding ];
 
 %   sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
 %    thetas, translations );
 %   save('phSinogram.mat','sinogram')
   load 'phSinogram.mat'
-
+  
 %   maxIters = 1000;
 %   x0 = rand( nRows, nCols );
 %   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
