@@ -3,18 +3,20 @@ function run_ctCorrectForTranslation
   clear; close all;
   addpath(genpath('.'));
 
+  % Reconstruction parameters
+  cx = 0;   nCols=32;
+  cy = 0;   nRows=32;
+  pixSize = 0.001; % meters / pixel
+  
   im = phantom();
+  im = imresize( im, [nCols nRows] );
 
-  nDetectors = 500;
   detSize = 0.001;
-  dTheta = 1 * pi/180;
+  dTheta = 2 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
   nThetas = numel(thetas);
-  
-  % Reconstruction parameters
-  cx = 0;   nCols=256;
-  cy = 0;   nRows=256;
-  pixSize = 0.001; % meters / pixel
+
+  nDetectors = nCols*2;
 
   maxVerticalShift = 0.01; % in meters
   maxHorizontalShift = 0.02; % in meters
@@ -49,20 +51,25 @@ function run_ctCorrectForTranslation
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
 
-  minStep = 1e-5; 
-  maxStep = 1e5;
-  [optimalSigma, optimalTau] = findBestStepSizes(minStep,... 
-  maxStep, minStep, maxStep, nrmK, sinogram,...
-  nDetectors, detSize, thetas, translations, nCols, nRows, pixSize);
-%   load 'optimalSteps.mat'
-  save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
+%   minStep = 1e-5; 
+%   maxStep = 1e5;
+%   [optimalSigma, optimalTau] = findBestStepSizes(minStep,... 
+%   maxStep, minStep, maxStep, nrmK, sinogram,...
+%   nDetectors, detSize, thetas, translations, nCols, nRows, pixSize);
+% %   load 'optimalSteps.mat'
+%   save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
 
 
+profile on
   tic;
   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
-    thetas, translations, nCols, nRows, pixSize, nrmK, ...
-    optimalSigma, optimalTau );
+    thetas, translations, nCols, nRows, pixSize, nrmK );
+%   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
+%     thetas, translations, nCols, nRows, pixSize, nrmK, ...
+%     optimalSigma, optimalTau );
   timeTaken = toc;
+profile off
+profile viewer
 
   disp(['Time taken: ', num2str(timeTaken)]);
   figure; imshow( recon, [] );  title('Reconstructed image');

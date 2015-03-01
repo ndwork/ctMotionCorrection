@@ -40,9 +40,12 @@ function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
   theta = 1;
   nIter = 1000;
   costs = zeros(nIter,1);
+  minCost = 9999;  bestX = x;
+figure;
   for i=1:nIter
     if mod(i,5)==0
       disp(['Working on iteration ', num2str(i), ' of ', num2str(nIter)]);
+imshow( x, [] );  drawnow;
     end
 
     % Update y
@@ -52,7 +55,12 @@ function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
 
     costs(i) = 0.5*norm( ExBar(:) - sinogram(:), 2 ) + ...
       gamma * norm( D1xBar(:), 1 ) + gamma * norm( D2xBar(:), 1 );
-    
+
+    if costs(i) < minCost
+      minCost = costs(i);
+      bestX = x;
+    end
+
     yE = ( tmpE - sigma*sinogram ) / ( sigma + 1 );
     yD1 = min( tmpD1, gamma );
     yD1 = max( yD1, -gamma );
@@ -63,11 +71,11 @@ function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
     lastX = x;
     tmp = x - tau * ( applyET(yE) + applyD1T(yD1) + applyD2T(yD2) );
     x = max( tmp, 0 );
-
+    
     % Update xBar
     xBar = x + theta * ( x - lastX );
   end
 
-  recon = x;
+  recon = bestX;
 end
 
