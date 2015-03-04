@@ -40,15 +40,6 @@ function run_ctCorrectForTranslation
 %   save('phSinogram.mat','sinogram')
   load 'phSinogram.mat'
 
-%   minStep = 1e-5; 
-%   maxStep = 1e5;
-%   [optimalSigma, optimalTau] = findBestStepSizes(minStep,... 
-%   maxStep, minStep, maxStep, nrmK, sinogram,...
-%   nDetectors, detSize, thetas, translations, nCols, nRows, pixSize);
-% %   load 'optimalSteps.mat'
-%   save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
-
-
   profile on
   tic;
   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...

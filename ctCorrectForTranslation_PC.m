@@ -16,6 +16,14 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
 
+%   minStep = 1e-5; 
+%   maxStep = 1e5;
+%   [optimalSigma, optimalTau] = findBestStepSizes(minStep,... 
+%   maxStep, minStep, maxStep, nrmK, sinogram,...
+%   nDetectors, detSize, thetas, translations, nCols, nRows, pixSize);
+% %   load 'optimalSteps.mat'
+%   save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
+  
   if nargin < 10
     sigma = 1/nrmK;
     tau = 1/nrmK;
