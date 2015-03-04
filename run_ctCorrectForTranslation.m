@@ -12,7 +12,7 @@ function run_ctCorrectForTranslation
   im = phantom();
   im = imresize( im, [nCols nRows], 'bilinear' );
 
-figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
+  figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
 
   detSize = 0.001;
   dTheta = 2 * pi/180;
@@ -57,7 +57,7 @@ figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
 %   save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
 
 
-profile on
+  profile on
   tic;
   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
     thetas, translations, nCols, nRows, pixSize, nrmK, 'method', method );
@@ -65,16 +65,15 @@ profile on
 %     thetas, translations, nCols, nRows, pixSize, nrmK, ...
 %     optimalSigma, optimalTau );
   timeTaken = toc;
-profile off
-profile viewer
+  profile off
+  profile viewer
 
   disp(['Time taken: ', num2str(timeTaken)]);
-  figure; imshow( recon, [] );  title('Reconstructed image');
+  figure; imshow( imresize(recon,10,'nearest'), [] );
+  title('Reconstructed image');
   
   figure; plot( costs, 'LineWidth', 2 );
   xlabel('Iteration'); ylabel('Cost Function');
-  
+
 end
-
-
 

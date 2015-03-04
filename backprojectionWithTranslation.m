@@ -1,7 +1,11 @@
 function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
-  cx, cy, Nx, Ny, pixSize, translations, verbose )
+  cx, cy, Nx, Ny, pixSize, translations, varargin )
 
-  if nargin < 10, verbose=0; end;
+  defaultVerbose = 0;  
+  p = inputParser;
+  p.addOptional( 'verbose', defaultVerbose );
+  p.parse( varargin{:} );
+  verbose = p.Results.verbose;
 
   [nThetas, nDetectors] = size(sinogram);
 
