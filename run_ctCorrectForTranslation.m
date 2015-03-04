@@ -4,15 +4,16 @@ function run_ctCorrectForTranslation
   addpath(genpath('.'));
 
   % Reconstruction parameters
+  method = 'GD';    % Options: GD, PC, LADMM
   cx = 0;   nCols=32;
   cy = 0;   nRows=32;
   pixSize = 0.001; % meters / pixel
-  
+
   im = phantom();
   im = imresize( im, [nCols nRows], 'bilinear' );
 
 figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
-  
+
   detSize = 0.001;
   dTheta = 2 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
@@ -59,7 +60,7 @@ figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
 profile on
   tic;
   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
-    thetas, translations, nCols, nRows, pixSize, nrmK );
+    thetas, translations, nCols, nRows, pixSize, nrmK, 'method', method );
 %   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
 %     thetas, translations, nCols, nRows, pixSize, nrmK, ...
 %     optimalSigma, optimalTau );

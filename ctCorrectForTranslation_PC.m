@@ -8,7 +8,10 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
-  if nargin < 10, sigma=1; end;
+  if nargin < 10
+    sigma = 1/nrmK;
+    tau = 1/nrmK;
+  end;
 
   %gamma = 1d-5;   % Regularization parameter
   gamma = 0;
@@ -31,8 +34,6 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
   yE = zeros( nThetas, nDetectors );
   yD1 = zeros( nRows, nCols );
   yD2 = zeros( nRows, nCols );
-
-  if nargin < 10, tau = 1 / (nrmK*nrmK*sigma) * 0.999; end;
 
   if sigma*tau > 1 / (nrmK*nrmK)
     error('Improperly chosen step sizes');
