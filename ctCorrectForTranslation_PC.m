@@ -8,13 +8,20 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
+%   maxIters = 1000;
+%   x0 = rand( nRows, nCols );
+%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
+%    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
+%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
+  load 'nrmK.mat';
+
   if nargin < 10
     sigma = 1/nrmK;
     tau = 1/nrmK;
   end;
 
-  %gamma = 1d-5;   % Regularization parameter
-  gamma = 0;
+  gamma = 1d-5;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
   applyD2 = @(u) cat(1, u(2:end,:) - u(1:end-1,:), zeros(1,nCols));
