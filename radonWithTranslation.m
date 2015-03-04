@@ -1,6 +1,6 @@
 
 function sinogram = radonWithTranslation( img, pixSize, nDetectors, ...
-  detSize, thetas, translations, verbose )
+  detSize, thetas, translations_m, verbose )
   % img:  2D array - will take the Radon transform of this image
   % pixSize: horizontal and vertical size of pixel (assumed square)
   % nDetectors: the number of detectors
@@ -33,11 +33,12 @@ radiusImg = img;
     locs = ( ([0:Nx-1]) - floor(0.5*Nx) ) * pixSize;
   end
 
+  translations_pix = translations_m / pixSize;
+
   sinogram = zeros( nTheta, nDetectors );
   parfor th=1:numel(thetas)
     theta = thetas_deg(th);
-    thisTrans_m = translations(th,:);
-    thisTrans_pix = thisTrans_m / pixSize;
+    thisTrans_pix = translations_pix(th,:);
     translated = translateImg( radiusImg, thisTrans_pix );
     rotImg = imrotate( translated, theta, 'bilinear', 'crop' );
     sumResult = sum( rotImg, 1 ) * pixSize;

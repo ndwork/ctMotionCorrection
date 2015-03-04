@@ -1,5 +1,5 @@
 function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
-  detSize, thetas, translations, nCols, nRows, pixSize, nrmK, varargin )
+  detSize, thetas, translations, nCols, nRows, pixSize, varargin )
   % Optional Variables:
   % method:
 	%   'GD' for Gradient Descent
@@ -24,12 +24,12 @@ function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
     case 'LADMM'  % Linearized ADMM
       [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
         nDetectors, detSize, thetas, translations, nCols, nRows, ...
-        pixSize, nrmK );
+        pixSize );
 
     case 'PC'     % Pock-Chambolle
       [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
         nDetectors, detSize, thetas, translations, nCols, nRows, ...
-        pixSize, nrmK );
+        pixSize );
 
   end
 

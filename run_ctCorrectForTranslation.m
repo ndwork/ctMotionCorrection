@@ -21,8 +21,8 @@ function run_ctCorrectForTranslation
 
   nDetectors = nCols*2;
 
-  maxVerticalShift = 0.01; % in meters
-  maxHorizontalShift = 0.02; % in meters
+  maxVerticalShift = 0.001; % in meters
+  maxHorizontalShift = 0.002; % in meters
   translations = zeros( nThetas, 2 );
 %   translations(:,1) = linspace(0,maxVerticalShift,nThetas);
 %   translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
@@ -35,21 +35,18 @@ function run_ctCorrectForTranslation
   yPadding = zeros(ceil(abs(yShiftPix)),size(im,2));
   im = [ yPadding; im; yPadding ];
 
-%   sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
-%    thetas, translations );
-%   save('phSinogram.mat','sinogram')
-  load 'phSinogram.mat'
+  sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
+   thetas, translations );
+  save('phSinogram.mat','sinogram')
+%   load 'phSinogram.mat'
 
-  profile on
+  %profile on
   tic;
   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
-    thetas, translations, nCols, nRows, pixSize, nrmK, 'method', method );
-%   [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, detSize, ...
-%     thetas, translations, nCols, nRows, pixSize, nrmK, ...
-%     optimalSigma, optimalTau );
+    thetas, translations, nCols, nRows, pixSize, 'method', method );
   timeTaken = toc;
-  profile off
-  profile viewer
+  %profile off
+  %profile viewer
 
   disp(['Time taken: ', num2str(timeTaken)]);
   figure; imshow( imresize(recon,10,'nearest'), [] );
