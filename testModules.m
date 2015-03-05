@@ -1,6 +1,24 @@
 function [] = testModules()
   close all; clear;
   profile on;
+  
+ %% Test making linear interpolation matrix
+  
+  x = rand(20,1);
+  xLocs = [1:1:20]';
+  interpLocs = rand(20,1)*20;
+  
+  interpMatlab = interp1(xLocs,x,interpLocs,'linear',0);
+  interpMatrix = makeLinearInterpMatrix( xLocs, interpLocs );
+  interpUs = interpMatrix*x;
+  
+  error = max(abs(interpMatlab - interpUs));
+  if error < 1d-12
+    disp('Test of linear interpolation matrix: Passed');
+  else
+    disp(['Test of linear interpolation matrix: Failed with error ',...
+      num2str(error)]);
+  end
 
   %% Test image translation function
   x = phantom();
