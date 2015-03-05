@@ -9,7 +9,7 @@ function M = makeLinearInterpMatrix( x, xq )
 
   for i=1:nq
     if xq(i) < minX || xq(i) > maxX, continue; end;
-    
+
     diff = xq(i) - x;
     [~,minDiffIndx] = min(abs(diff));
     

@@ -1,6 +1,6 @@
 
 function sinogram = radonWithTranslation( img, pixSize, nDetectors, ...
-  detSize, thetas, translations_m, verbose )
+  detSize, thetas, translations_m )
   % img:  2D array - will take the Radon transform of this image
   % pixSize: horizontal and vertical size of pixel (assumed square)
   % nDetectors: the number of detectors
@@ -24,8 +24,7 @@ function sinogram = radonWithTranslation( img, pixSize, nDetectors, ...
   xs = xs - halfX;
   ys = ys - halfY;
   radiusMask = sqrt( xs.*xs + ys.*ys ) < min(Nx/2,Ny/2);
-%   radiusImg = img .* radiusMask;
-radiusImg = img;
+	radiusImg = img .* radiusMask;
 
   if mod( Nx, 2 )==0
     locs = ( ([0:Nx-1]) - 0.5*Nx + 0.5 ) * pixSize;
@@ -35,6 +34,8 @@ radiusImg = img;
 
   translations_pix = translations_m / pixSize;
 
+  M = makeLinearInterpMatrix( locs, dLocs );
+
   sinogram = zeros( nTheta, nDetectors );
   parfor th=1:numel(thetas)
     theta = thetas_deg(th);
@@ -43,15 +44,15 @@ radiusImg = img;
     rotImg = imrotate( translated, theta, 'bilinear', 'crop' );
     sumResult = sum( rotImg, 1 ) * pixSize;
 
-    interped = interp1( locs, sumResult, dLocs,'linear',0 );
+    extrapVal = 0;
+    %interped = interp1( locs, sumResult, dLocs, 'linear', extrapVal );
+    interped = M * sumResult';
 
     sinogram(th,:) = interped;
-
-    if verbose && mod(th,10)==0
-      disp(['radonWithTranslation Theta: ', num2str(th), ' of ', ...
-        num2str(numel(thetas)) ]);
-    end
   end
 
 end
+
+
+
 

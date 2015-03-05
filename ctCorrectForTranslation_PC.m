@@ -23,7 +23,7 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
 %   nDetectors, detSize, thetas, translations, nCols, nRows, pixSize);
 % %   load 'optimalSteps.mat'
 %   save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
-  
+
   if nargin < 10
     sigma = 1/nrmK;
     tau = 1/nrmK;
@@ -40,7 +40,9 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
     detSize, thetas, translations );
 
   cx = 0;  cy = 0;
-  applyET = @(u) backprojectionWithTranslation( u, thetas, ...
+  %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations );
+  applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
     detSize, cx, cy, nCols, nRows, pixSize, translations );
 
   nThetas = numel( thetas );

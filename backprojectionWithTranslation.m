@@ -1,11 +1,5 @@
 function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
-  cx, cy, Nx, Ny, pixSize, translations, varargin )
-
-  defaultVerbose = 0;  
-  p = inputParser;
-  p.addOptional( 'verbose', defaultVerbose );
-  p.parse( varargin{:} );
-  verbose = p.Results.verbose;
+  cx, cy, Nx, Ny, pixSize, translations )
 
   [nThetas, nDetectors] = size(sinogram);
 
@@ -31,6 +25,12 @@ function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
   angles = atan2(ys,xs);
   pixDs = sqrt( xs.*xs + ys.*ys );
 
+  xs = ones(Ny,1) * (1:Nx);
+  ys = (1:Ny)' * ones(1,Nx);
+  halfY = Ny/2;  ys = ys - halfY;
+  halfX = Nx/2;  xs = xs - halfX;
+  radiusMask = sqrt( xs.*xs + ys.*ys ) < min(Nx/2,Ny/2);
+
   bp = zeros(Ny,Nx);
   parfor thIndx = 1:nThetas
     theta = thetas( thIndx );
@@ -44,11 +44,9 @@ function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
     thisTrans_pix = thisTrans_m ./ [pixSize,pixSize];
     translated = translateImg( interpedImg, -thisTrans_pix );
 
-    bp = bp + translated;
-    if verbose && mod(thIndx,10)==0
-      disp([ 'applyETrans Theta Indx / Theta: ', ...
-        num2str(thIndx), '/', num2str(theta) ]);
-    end
+    masked = translated .* radiusMask;
+    
+    bp = bp + masked;
   end
 
 end

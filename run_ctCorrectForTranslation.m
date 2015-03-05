@@ -4,7 +4,7 @@ function run_ctCorrectForTranslation
   addpath(genpath('.'));
 
   % Reconstruction parameters
-  method = 'GD';    % Options: GD, PC, LADMM
+  method = 'LADMM';    % Options: GD, PC, LADMM
   cx = 0;   nCols=32;
   cy = 0;   nRows=32;
   pixSize = 0.001; % meters / pixel
@@ -21,11 +21,11 @@ function run_ctCorrectForTranslation
 
   nDetectors = nCols*2;
 
-  maxVerticalShift = 0.001; % in meters
-  maxHorizontalShift = 0.002; % in meters
+  maxVerticalShift = 0.01; % in meters
+  maxHorizontalShift = 0.02; % in meters
   translations = zeros( nThetas, 2 );
-%   translations(:,1) = linspace(0,maxVerticalShift,nThetas);
-%   translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
+  translations(:,1) = linspace(0,maxVerticalShift,nThetas);
+  translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
 
   % pad the phantom image so that it always stays in the field of view
   xShiftPix = maxHorizontalShift / pixSize;
@@ -37,7 +37,7 @@ function run_ctCorrectForTranslation
 
   sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
    thetas, translations );
-  save('phSinogram.mat','sinogram')
+%  save('phSinogram.mat','sinogram')
 %   load 'phSinogram.mat'
 
   %profile on

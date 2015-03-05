@@ -15,7 +15,8 @@ function recon = ctCorrectForTranslation_GD( sinogram, nDetectors, ...
   cx = 0;  cy = 0;
   applyET = @(u) backprojectionWithTranslation_GD( u, nDetectors, ...
     thetas, detSize, cx, cy, nCols, nRows, pixSize, translations );
-
+  
+  
   function out= applyForGD( in, type )
     switch type
       case 'transp'
@@ -48,8 +49,10 @@ function out = backprojectionWithTranslation_GD( u, nDetectors, thetas, ...
   nThetas = numel( thetas );
   sinogram = reshape( u, [nThetas nDetectors] );
 
-  bp = backprojectionWithTranslation( sinogram, thetas, ...
+  bp = radonWithTranslationAdjoint( sinogram, thetas, ...
     detSize, cx, cy, nCols, nRows, pixSize, translations );
+  %bp = backprojectionWithTranslation( sinogram, thetas, ...
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations );
 
   out = bp(:);
 end

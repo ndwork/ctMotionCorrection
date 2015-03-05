@@ -17,9 +17,8 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
 %   figure;  plot(lambdaVals);  title('Lambda v Iteration');
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
-  
-  %gamma = 1d-5;   % Regularization parameter
-  gamma = 0;
+
+  gamma = 1d-5;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
   applyD2 = @(u) cat(1, u(2:end,:) - u(1:end-1,:), zeros(1,nCols));
@@ -30,7 +29,9 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
     detSize, thetas, translations );
 
   cx = 0;  cy = 0;
-  applyET = @(u) backprojectionWithTranslation( u, thetas, ...
+  %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations );
+  applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
     detSize, cx, cy, nCols, nRows, pixSize, translations );
 
   nThetas = numel( thetas );

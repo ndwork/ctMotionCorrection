@@ -13,7 +13,7 @@ function [] = testModules()
   else
     disp(['Test of translate image: Failed with error ', num2str(error)]);
   end
-  
+
   %% Test adjoint of D1
   nDetectors = 500;
   nRows = nDetectors;
@@ -61,7 +61,7 @@ function [] = testModules()
 
   %% test adjoint of R (E without translation)
   nDetectors = 500;
-  detectorSize = 0.001;
+  detectorSize = 1;
   dTheta = 1 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
   nThetas = numel(thetas);
@@ -69,13 +69,13 @@ function [] = testModules()
   sizeSino = [nThetas nDetectors];
   nRows = sizeSino(2)/2;  %num rows of reconstructed image
   nCols = sizeSino(2)/2;  %num cols of reconstructed image
-  pixelSize = 0.001;
+  pixelSize = 1;
 
   applyR = @(u) radonWithTranslation( u, pixelSize, nDetectors, ...
     detectorSize, thetas, translations );
 
   cx = 0;  cy = 0;
-  applyRT = @(u) backprojectionWithTranslation( u, thetas, detectorSize, ...
+  applyRT = @(u) radonWithTranslationAdjoint( u, thetas, detectorSize, ...
     cx, cy, nRows, nCols, pixelSize, translations );
 
   [outR,adjointError] = testAdjointRadon(applyR,applyRT,nRows,nCols);
@@ -173,20 +173,19 @@ function [out] = testAdjoint_translateImg(Mx,Nx,My,Ny)
   end
 end
 
-function [out, error] = testAdjointRadon(applyR,applyRTrans,Mx,Nx)
-  
+function [out, error] = testAdjointRadon( applyR, applyRT, Mx, Nx )
   img = phantom();
   img = imresize(img,[Mx Nx]);
   Rimg = applyR(img);
-  
+
   imgToMakeSino = imrotate(phantom(),90);
   sino = applyR(imgToMakeSino);
-  RTsino = applyRTrans(sino);
+  RTsino = applyRT(sino);
 
   prod1 = Rimg .* sino;     innerProd1 = sum( prod1(:) );
   prod2 = img .* RTsino;    innerProd2 = sum( prod2(:) );
 
-  error = abs(innerProd1 - innerProd2);
+  error = abs(innerProd1 - innerProd2) / min(innerProd1,innerProd2);
 
   if error < 1e-10
     out = 1;
