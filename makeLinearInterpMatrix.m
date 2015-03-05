@@ -11,9 +11,11 @@ function M = makeLinearInterpMatrix( x, xq )
     if xq(i) < minX || xq(i) > maxX, continue; end;
     
     diff = xq(i) - x;
-    [~,minDiffIndx] = min(diff);
+    [~,minDiffIndx] = min(abs(diff));
     
-    if xq(i) > x(minDiffIndx)
+    if xq(i) == x(minDiffIndx)
+      M(i,minDiffIndx) = 1;
+    elseif xq(i) > x(minDiffIndx)
       b = xq(i) - x(minDiffIndx);
       a = x(minDiffIndx+1) - xq(i);
       xDist = x(minDiffIndx+1) - x(minDiffIndx);
