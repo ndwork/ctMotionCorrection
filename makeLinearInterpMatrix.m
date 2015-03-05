@@ -1,8 +1,8 @@
 
-function M = makeLinearInterpMatrix( x, y, xq )
+function M = makeLinearInterpMatrix( x, xq )
   nq = numel(xq);
-  ny = numel(y);
-  M = zeros( nq, ny );
+  nx = numel(x);
+  M = zeros( nq, nx );
 
   minX = min(x);
   maxX = max(x);
