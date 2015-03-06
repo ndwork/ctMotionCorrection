@@ -27,13 +27,8 @@ function run_ctCorrectForTranslation
   %translations(:,1) = linspace(0,maxVerticalShift,nThetas);
   %translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
 
-  % pad the phantom image so that it always stays in the field of view
-  xShiftPix = maxHorizontalShift / pixSize;
-  xPadding = zeros(size(im,1),ceil(abs(xShiftPix)));
-  im = [xPadding im xPadding];
-  yShiftPix = maxVerticalShift / pixSize;
-  yPadding = zeros(ceil(abs(yShiftPix)),size(im,2));
-  im = [ yPadding; im; yPadding ];
+  im = padImgForRadon( img, maxHorizontalShift, maxVerticalShift, ...
+      pixSize );
 
   sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
    thetas, translations );
