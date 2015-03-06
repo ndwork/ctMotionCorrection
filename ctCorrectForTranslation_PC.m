@@ -1,6 +1,6 @@
 
-function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
-  detSize, thetas, translations, nCols, nRows, pixSize, ...
+function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
+  nDetectors, detSize, thetas, translations_m, nCols, nRows, pixSize, ...
   sigma, tau )
   % This function uses Pock-Chambolle to determine the reconstruction
   % image based on the known translations
@@ -10,8 +10,8 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
 
 %   maxIters = 1000;
 %   x0 = rand( nRows, nCols );
-%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
-%    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( applyE, applyET, ...   
+%     applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
 %   figure;  plot(lambdaVals);  title('Lambda v Iteration');
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
@@ -20,7 +20,7 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
 %   maxStep = 1e5;
 %   [optimalSigma, optimalTau] = findBestStepSizes(minStep,... 
 %   maxStep, minStep, maxStep, nrmK, sinogram,...
-%   nDetectors, detSize, thetas, translations, nCols, nRows, pixSize);
+%   nDetectors, detSize, thetas, translations_m, nCols, nRows, pixSize);
 % %   load 'optimalSteps.mat'
 %   save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
 
@@ -29,21 +29,29 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
     tau = 1/nrmK;
   end;
 
-  gamma = 1d-5;   % Regularization parameter
+  gamma = 1d-6;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
   applyD2 = @(u) cat(1, u(2:end,:) - u(1:end-1,:), zeros(1,nCols));
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
-    detSize, thetas, translations );
+  %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+  %  detSize, thetas);
+load 'RadonMatrix.mat';
+  RT = transpose(R);
+
+  translations_pix = translations_m / pixSize;
+  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
+  %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
+  %  detSize, thetas, translations_m, R );
 
   cx = 0;  cy = 0;
   %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
-  %  detSize, cx, cy, nCols, nRows, pixSize, translations );
-  applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
-    detSize, cx, cy, nCols, nRows, pixSize, translations );
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
+  %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m, R );
+  applyET = @(u) RTWithTranslation( u, translations_pix, nCols, RT );
 
   nThetas = numel( thetas );
   x = zeros( nRows, nCols );
@@ -57,12 +65,12 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, nDetectors, ...
   end
 
   alpha = 1;
-  nIter = 1000;
+  nIter = 10000;
   costs = zeros(nIter,1);
   minCost = 9999;  bestX = x;
 reconH = figure;
   for i=1:nIter
-    if mod(i,5)==0
+    if mod(i,10)==0
       disp(['Working on iteration ', num2str(i), ' of ', num2str(nIter)]);
       figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
       title(['Iteration ', num2str(i)]);  drawnow;
@@ -104,4 +112,6 @@ reconH = figure;
 
   recon = bestX;
 end
+
+
 

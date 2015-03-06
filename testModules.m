@@ -1,17 +1,17 @@
 function [] = testModules()
   close all; clear;
   profile on;
-  
- %% Test making linear interpolation matrix
-  
+
+
+  %% Test making linear interpolation matrix
   x = rand(20,1);
   xLocs = [1:1:20]';
   interpLocs = rand(20,1)*20;
-  
+
   interpMatlab = interp1(xLocs,x,interpLocs,'linear',0);
   interpMatrix = makeLinearInterpMatrix( xLocs, interpLocs );
   interpUs = interpMatrix*x;
-  
+
   error = max(abs(interpMatlab - interpUs));
   if error < 1d-12
     disp('Test of linear interpolation matrix: Passed');
@@ -125,7 +125,9 @@ function [] = testModules()
     detectorSize, thetas, translations );
 
   cx = 0;  cy = 0;
-  applyET = @(u) backprojectionWithTranslation( u, thetas, detectorSize, ...
+  %applyET = @(u) backprojectionWithTranslation( u, thetas, detectorSize, ...
+  %  cx, cy, nRows, nCols, pixelSize, translations );
+  applyET = @(u) radonWithTranslationAdjoint( u, thetas, detectorSize, ...
     cx, cy, nRows, nCols, pixelSize, translations );
 
   [outR,adjointError] = testAdjointRadon(applyE,applyET,nRows,nCols);
@@ -157,6 +159,40 @@ function [] = testModules()
       num2str(error)])
   end
 
+    %% Test Radon Matrix
+  im = phantom();
+  im = imresize( im, [32 32] );
+  [nCols, nRows] = size(im);
+  pixSize = 1;
+  nDetectors = 100;
+  detSize = 1;
+  dTheta = 2 * pi/180;
+  thetas = 0:dTheta:pi-dTheta;
+  nthetas = numel(thetas);
+
+  if exist('RadonMatrix.mat', 'file') == 2
+    load 'RadonMatrix.mat';
+  else
+    R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+      detSize, thetas);
+    save( 'RadonMatrix.mat', 'R');
+  end
+
+  sino1 = R * im(:);
+  sino1 = reshape( sino1, [nthetas nDetectors] );
+
+  sino2 = radonTransform( im, pixSize, nDetectors, ...
+    detSize, thetas );
+
+  error = max( abs( sino1(:) - sino2(:) ) );
+  if error < 1d-12
+    disp('Test of makeRadonMatrix: Passed');
+  else
+    disp(['Test of makeRadonMatrix: Failed with error ',...
+      num2str(error)]);
+  end
+
+  %% Cleanup
   profile off;
   profile viewer;
 end

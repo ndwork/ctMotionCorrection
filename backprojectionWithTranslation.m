@@ -40,13 +40,13 @@ function bp = backprojectionWithTranslation( sinogram, thetas, detSize, ...
       'linear', 'extrap') * pixSize;
     interpedImg = reshape( interped, Ny, Nx );
     
+    masked = interpedImg .* radiusMask;
+
     thisTrans_m = translations(thIndx,:);
     thisTrans_pix = thisTrans_m ./ [pixSize,pixSize];
-    translated = translateImg( interpedImg, -thisTrans_pix );
+    translated = translateImg( masked, -thisTrans_pix );
 
-    masked = translated .* radiusMask;
-    
-    bp = bp + masked;
+    bp = bp + translated;
   end
 
 end

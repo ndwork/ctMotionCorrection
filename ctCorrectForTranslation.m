@@ -6,7 +6,6 @@ function [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
   %   'LADMM' for Linearized ADMM
   %   'PC' for Pock Chambolle
 
-
   defaultMethod = 'PC';  
   p = inputParser;
   p.addOptional( 'method', defaultMethod );

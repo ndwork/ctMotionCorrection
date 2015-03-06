@@ -25,24 +25,22 @@ function out = radonWithTranslationAdjoint( sinogram, thetas, detSize, ...
   M = makeLinearInterpMatrix( pixLocsX, dLocs );
 
   out = zeros(Ny,Nx);
-  %parfor th = 1:nThetas
-for th = 1:nThetas
+  parfor th = 1:nThetas
     %extrapVal = 0;
     %interped = interp1( dLocs, sinogram(th,:), pixLocsX, 'linear', ...
     %  extrapVal );
     interped = M' * sinogram(th,:)';
 
     smear = ones(Ny,1) * interped';
-
     theta = thetas_deg(th);
     rotImg = imrotate( smear, -theta, 'bilinear', 'crop' );
 
-    thisTrans_pix = translations_pix(th,:);
-    translated = translateImg( rotImg, -thisTrans_pix );
+    masked = rotImg .* radiusMask;
 
-    masked = translated .* radiusMask;
-    
-    out = out + masked;
+    thisTrans_pix = translations_pix(th,:);
+    translated = translateImg( masked, -thisTrans_pix );
+
+    out = out + translated;
   end
 
 end

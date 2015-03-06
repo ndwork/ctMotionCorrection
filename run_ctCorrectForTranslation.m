@@ -4,7 +4,7 @@ function run_ctCorrectForTranslation
   addpath(genpath('.'));
 
   % Reconstruction parameters
-  method = 'LADMM';    % Options: GD, PC, LADMM
+  method = 'PC';    % Options: GD, PC, LADMM
   cx = 0;   nCols=32;
   cy = 0;   nRows=32;
   pixSize = 0.001; % meters / pixel
@@ -24,8 +24,8 @@ function run_ctCorrectForTranslation
   maxVerticalShift = 0.01; % in meters
   maxHorizontalShift = 0.02; % in meters
   translations = zeros( nThetas, 2 );
-  translations(:,1) = linspace(0,maxVerticalShift,nThetas);
-  translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
+  %translations(:,1) = linspace(0,maxVerticalShift,nThetas);
+  %translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
 
   % pad the phantom image so that it always stays in the field of view
   xShiftPix = maxHorizontalShift / pixSize;
