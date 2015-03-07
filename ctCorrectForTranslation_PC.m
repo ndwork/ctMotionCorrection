@@ -1,33 +1,12 @@
 
 function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   nDetectors, detSize, thetas, translations_m, nCols, nRows, pixSize, ...
-  sigma, tau )
+  varargin )
   % This function uses Pock-Chambolle to determine the reconstruction
   % image based on the known translations
   % sinogram is an MxN array
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
-
-%   maxIters = 1000;
-%   x0 = rand( nRows, nCols );
-%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( applyE, applyET, ...   
-%     applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
-%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
-%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
-  load 'nrmK.mat';
-
-%   minStep = 1e-5; 
-%   maxStep = 1e5;
-%   [optimalSigma, optimalTau] = findBestStepSizes(minStep,... 
-%   maxStep, minStep, maxStep, nrmK, sinogram,...
-%   nDetectors, detSize, thetas, translations_m, nCols, nRows, pixSize);
-% %   load 'optimalSteps.mat'
-%   save( 'optimalSteps.mat','optimalSigma', 'optimalTau' );
-
-  if nargin < 10
-    sigma = 1/nrmK;
-    tau = 1/nrmK;
-  end;
 
   gamma = 1d-6;   % Regularization parameter
 
@@ -44,14 +23,46 @@ load 'RadonMatrix.mat';
   translations_pix = translations_m / pixSize;
   applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
   %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
-  %  detSize, thetas, translations_m, R );
+  %  detSize, thetas, translations_m );
 
   cx = 0;  cy = 0;
   %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
   %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
-  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m, R );
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
   applyET = @(u) RTWithTranslation( u, translations_pix, nCols, RT );
+
+%   maxIters = 1000;
+%   x0 = rand( nRows, nCols );
+%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( applyE, applyET, ...   
+%     applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
+%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
+  load 'nrmK.mat';
+
+  defaultSigma = [];
+  defaultTau = [];
+  p = inputParser;
+  p.addOptional( 'sigma', defaultSigma, @isnumeric );
+  p.addOptional( 'tau', defaultTau, @isnumeric );
+  p.parse( varargin{:} );
+  sigma = p.Results.sigma;
+  tau = p.Results.tau;
+  if numel( sigma ) == 0 && numel( tau ) == 0
+    %sigma = 1/nrmK;
+    %tau = 1/nrmK;
+    minStep = 1e-5; 
+    maxStep = 1e5;
+    %[sigma, tau] = findBestStepSizes_PC(minStep,... 
+    %  maxStep, minStep, maxStep, nrmK, sinogram, nDetectors, ...
+    %  detSize, thetas, translations_m, nCols, nRows, pixSize, 0);
+    %save( 'optimalSteps.mat','sigma', 'tau' );
+    load 'optimalSteps.mat'
+  elseif numel( sigma ) == 0
+    tau = 1/(nrmK^2 * sigma );
+  elseif numel( tau ) == 0
+    sigma = 1/(nrmK^2 * tau );
+  end
 
   nThetas = numel( thetas );
   x = zeros( nRows, nCols );
@@ -112,6 +123,5 @@ reconH = figure;
 
   recon = bestX;
 end
-
 
 

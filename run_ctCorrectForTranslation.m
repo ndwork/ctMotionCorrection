@@ -5,8 +5,8 @@ function run_ctCorrectForTranslation
 
   % Reconstruction parameters
   method = 'PC';    % Options: GD, PC, LADMM
-  cx = 0;   nCols=32;
   cy = 0;   nRows=32;
+  cx = 0;   nCols=32;
   pixSize = 0.001; % meters / pixel
 
   im = phantom();
@@ -21,19 +21,25 @@ function run_ctCorrectForTranslation
 
   nDetectors = nCols*2;
 
-  maxVerticalShift = 0.01; % in meters
-  maxHorizontalShift = 0.02; % in meters
-  translations = zeros( nThetas, 2 );
-  %translations(:,1) = linspace(0,maxVerticalShift,nThetas);
-  %translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
+  nonzeroTranslations = 1;
+  if nonzeroTranslations > 0
+    maxVerticalShift = 0.01; % in meters
+    maxHorizontalShift = 0.02; % in meters
+    translations = zeros( nThetas, 2 );
+    translations(:,1) = linspace(0,maxVerticalShift,nThetas);
+    translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
+  else
+    maxVerticalShift = 0; % in meters
+    maxHorizontalShift = 0; % in meters
+    translations = zeros( nThetas, 2 );
+  end
 
-  im = padImgForRadon( img, maxHorizontalShift, maxVerticalShift, ...
+  im = padImgForRadon( im, maxHorizontalShift, maxVerticalShift, ...
       pixSize );
+  [nRows,nCols] = size(im);
 
   sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
    thetas, translations );
-%  save('phSinogram.mat','sinogram')
-%   load 'phSinogram.mat'
 
   %profile on
   tic;
