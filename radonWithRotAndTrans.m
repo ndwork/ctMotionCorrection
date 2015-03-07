@@ -35,9 +35,11 @@ function sinogram = radonWithRotAndTrans( img, pixSize, nDetectors, ...
 
   M = makeLinearInterpMatrix( locs, dLocs );
 
+  rotations_deg = rotations * 180/pi;
+  
   sinogram = zeros( nTheta, nDetectors );
   parfor th=1:numel(thetas)
-    thisRot = rotations(th);
+    thisRot = rotations_deg(th);
     rotated = imrotate( img, thisRot, 'bilinear', 'crop' );
     
     thisTrans_pix = translations_pix(th,:);

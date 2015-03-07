@@ -1,14 +1,12 @@
 
 function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
-  nDetectors, detSize, thetas, translations, nCols, nRows, pixSize, ...
+  nDetectors, detSize, thetas, translations_m, nCols, nRows, pixSize, ...
   lambda, mu )
   % This function uses Pock-Chambolle to determine the reconstruction
   % image based on the known translations
   % sinogram is an MxN array
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
-
-  if nargin < 10, lambda=1; end;
 
 %   maxIters = 1000;
 %   x0 = rand( nRows, nCols );
@@ -18,6 +16,8 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
 
+  if nargin < 10, lambda=nrmK*nrmK; end;
+  
   gamma = 1d-5;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
@@ -25,14 +25,22 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
-    detSize, thetas, translations );
+  %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+  %  detSize, thetas);
+load 'RadonMatrix.mat';
+  RT = transpose(R);
 
-  cx = 0;  cy = 0;
+  translations_pix = translations_m / pixSize;
+  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
+  %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
+  %  detSize, thetas, translations_m );
+
+  %cx = 0;  cy = 0;
   %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
-  %  detSize, cx, cy, nCols, nRows, pixSize, translations );
-  applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
-    detSize, cx, cy, nCols, nRows, pixSize, translations );
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
+  %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
+  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
+  applyET = @(u) RTWithTranslation( u, translations_pix, nCols, RT );
 
   nThetas = numel( thetas );
   x = zeros( nRows, nCols );
@@ -45,7 +53,7 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
 
   if nargin < 11, mu = lambda / nrmK^2 * 0.99; end;
 
-  nIter = 1000;
+  nIter = 10000;
   costs = zeros(nIter,1);
 reconH = figure;
   for i=1:nIter
@@ -85,6 +93,7 @@ reconH = figure;
     xBarD1 = xBarD1 + D1x - zD1;
     xBarD2 = xBarD2 + D2x - zD2;
   end
+close( reconH );
 
   recon = bestX;
 end

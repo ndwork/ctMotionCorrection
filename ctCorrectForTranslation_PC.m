@@ -25,7 +25,7 @@ load 'RadonMatrix.mat';
   %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
   %  detSize, thetas, translations_m );
 
-  cx = 0;  cy = 0;
+  %cx = 0;  cy = 0;
   %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
   %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
@@ -120,6 +120,7 @@ reconH = figure;
     % Update xBar
     xBar = x + alpha * ( x - lastX );
   end
+close( reconH );
 
   recon = bestX;
 end

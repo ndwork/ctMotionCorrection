@@ -19,6 +19,7 @@ function [recon,costs] = ctCorrectForRotAndTrans_PC( sinogram, ...
 
   %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
   %  detSize, thetas);
+  %save( 'RadonMatrix.mat', 'R' );
 load 'RadonMatrix.mat';
   RT = transpose(R);
 
@@ -124,8 +125,8 @@ reconH = figure;
     % Update xBar
     xBar = x + alpha * ( x - lastX );
   end
+close( reconH );
 
   recon = bestX;
 end
-
 

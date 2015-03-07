@@ -15,8 +15,10 @@ function sinogram = RWithRotAndTrans( img, rotations, translations_pix, ...
   for i=1:nThetas
     thisRot = rotations(i);
     rotated = imrotate( img, thisRot, 'bilinear', 'crop' );
+
     thisTrans_pix = translations_pix(i,:);
     translated = translateImg( rotated, thisTrans_pix );
+
     %sinogram(i,:) = R(nDet*(i-1)+1:nDet*i,:) * translated(:);
     tmpSino = R * translated(:);
     tmpSino = reshape( tmpSino, [nThetas nDet] );
