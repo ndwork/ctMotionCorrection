@@ -83,11 +83,14 @@ function [] = testModules()
   dTheta = 1 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
   nThetas = numel(thetas);
+  maxVerticalShift = 0;
+  maxHorizontalShift = 0;
   translations = zeros( nThetas, 2 );
   sizeSino = [nThetas nDetectors];
   nRows = sizeSino(2)/2;  %num rows of reconstructed image
   nCols = sizeSino(2)/2;  %num cols of reconstructed image
   pixelSize = 1;
+  padded = 0;
 
   applyR = @(u) radonWithTranslation( u, pixelSize, nDetectors, ...
     detectorSize, thetas, translations );
@@ -96,7 +99,8 @@ function [] = testModules()
   applyRT = @(u) radonWithTranslationAdjoint( u, thetas, detectorSize, ...
     cx, cy, nRows, nCols, pixelSize, translations );
 
-  [outR,adjointError] = testAdjointRadon(applyR,applyRT,nRows,nCols);
+  [outR,adjointError] = testAdjointRadon(applyR,applyRT,nRows,nCols,...
+    pixelSize, maxVerticalShift, maxHorizontalShift,padded);
 
   if outR == 1;
     disp('Test adjoint of R: Passed')
@@ -105,7 +109,7 @@ function [] = testModules()
       num2str(adjointError)])
   end
 
-  %% test adjoint of E
+  %% test adjoint of E (with Radon and RadonAdjoint)
   nDetectors = 500;
   detectorSize = 0.001;
   dTheta = 1 * pi/180;
@@ -120,6 +124,7 @@ function [] = testModules()
   nRows = sizeSino(2)/2;  %num rows of reconstructed image
   nCols = sizeSino(2)/2;  %num cols of reconstructed image
   pixelSize = 0.001;
+  padded = 0;
 
   applyE = @(u) radonWithTranslation( u, pixelSize, nDetectors, ...
     detectorSize, thetas, translations );
@@ -130,14 +135,66 @@ function [] = testModules()
   applyET = @(u) radonWithTranslationAdjoint( u, thetas, detectorSize, ...
     cx, cy, nRows, nCols, pixelSize, translations );
 
-  [outR,adjointError] = testAdjointRadon(applyE,applyET,nRows,nCols);
+  [outR,adjointError] = testAdjointRadon(applyE,applyET,nRows,nCols,...
+    pixelSize, maxVerticalShift, maxHorizontalShift,padded);
 
   if outR == 1;
-    disp('Test adjoint of E: Passed')
+    disp('Test adjoint of E (with Radon and RadonAdjoint): Passed')
   else
-    disp(['Test adjoint of E: Failed with adjoint error: ', ...
-      num2str(adjointError)])
+    disp(['Test adjoint of E (with Radon and RadonAdjoint):',...
+      'Failed with adjoint error: ', num2str(adjointError)])
   end
+  
+  %% test adjoint of E (with R and RT)
+  nDetectors = 64;
+  detectorSize = 0.001;
+  dTheta = 1 * pi/180;
+  thetas = 0:dTheta:pi-dTheta;
+  nThetas = numel(thetas);
+  maxVerticalShift = 0.012;
+  maxHorizontalShift = -0.028;
+  translations = zeros( nThetas, 2 );
+  translations(:,1) = linspace(0,maxVerticalShift,nThetas);
+  translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
+  sizeSino = [nThetas nDetectors];
+  nRows = sizeSino(2)/2;  %num rows of reconstructed image
+  nCols = sizeSino(2)/2;  %num cols of reconstructed image
+  pixelSize = 0.001;
+  translations_pix = translations / pixelSize;
+  padded = 1;
+  
+  img = phantom();
+  img = imresize(img,[nRows nCols]);
+  imgPad = padImgForRadon( img, maxHorizontalShift, ...
+  maxVerticalShift, pixelSize );
+
+  nRowsPad = size(imgPad,1);
+  nColsPad = size(imgPad,2);
+  
+%   R = makeRadonMatrix( nColsPad, nRowsPad, pixelSize, nDetectors, ...
+%   detectorSize, thetas);
+%   save('Rmatrix.mat','R')
+  load('Rmatrix.mat')
+  
+  RT = transpose(R);
+
+  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
+
+  cx = 0;  cy = 0;
+  %applyET = @(u) backprojectionWithTranslation( u, thetas, detectorSize, ...
+  %  cx, cy, nRows, nCols, pixelSize, translations );
+  applyET = @(u) RTWithTranslation( u, translations_pix, nColsPad, RT );
+
+  [outR,adjointError] = testAdjointRadon(applyE,applyET,nRows,nCols,...
+    pixelSize, maxVerticalShift, maxHorizontalShift,padded);
+
+  if outR == 1;
+    disp('Test adjoint of E (with R and RT): Passed')
+  else
+    disp(['Test adjoint of E (with R and RT): ',...
+      'Failed with adjoint error: ', num2str(adjointError)])
+  end
+
 
   %% Test estimating the norm of K by power iteration
   sizeX = 20;
@@ -227,17 +284,29 @@ function [out] = testAdjoint_translateImg(Mx,Nx,My,Ny)
   end
 end
 
-function [out, error] = testAdjointRadon( applyR, applyRT, Mx, Nx )
+function [out, error] = testAdjointRadon( applyR, applyRT, Mx, Nx, ...
+  pixelSize, maxVerticalShift, maxHorizontalShift, padded)
   img = phantom();
   img = imresize(img,[Mx Nx]);
-  Rimg = applyR(img);
+  
+  imgPad = padImgForRadon( img, maxHorizontalShift, ...
+  maxVerticalShift, pixelSize );
+  Rimg = applyR(imgPad);
 
-  imgToMakeSino = imrotate(phantom(),90);
+  imgToMakeSino = imrotate(img,90);
+
+  imgToMakeSino = padImgForRadon( imgToMakeSino, maxHorizontalShift, ...
+  maxVerticalShift, pixelSize );
+
   sino = applyR(imgToMakeSino);
   RTsino = applyRT(sino);
 
   prod1 = Rimg .* sino;     innerProd1 = sum( prod1(:) );
-  prod2 = img .* RTsino;    innerProd2 = sum( prod2(:) );
+  if padded == 0
+    prod2 = img .* RTsino;    innerProd2 = sum( prod2(:) );
+  else
+    prod2 = imgPad .* RTsino;    innerProd2 = sum( prod2(:) );
+  end
 
   error = abs(innerProd1 - innerProd2) / min(innerProd1,innerProd2);
 
