@@ -1,10 +1,12 @@
 
-function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
-  nDetectors, detSize, thetas, translations_m, nCols, nRows, pixSize, ...
-  varargin )
+function [recon,costs] = ctCorrectForRotAndTrans_PC( sinogram, ...
+  nDetectors, detSize, thetas, rotations, translations_m, nCols, ...
+  nRows, pixSize, varargin )
   % This function uses Pock-Chambolle to determine the reconstruction
   % image based on the known translations
   % sinogram is an MxN array
+  % rotations is an M element array specifying the object's rotation for
+  %   each projection of the sinogram
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
@@ -21,21 +23,23 @@ load 'RadonMatrix.mat';
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;
-  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
-  %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
-  %  detSize, thetas, translations_m );
+  applyE = @(u) RWithRotAndTrans( u, rotations, translations_pix, ...
+    nDetectors, R );
+  %applyE = @(u) radonWithRotAndTrans( u, pixSize, nDetectors, ...
+  %  detSize, thetas, rotations, translations_m );
 
   cx = 0;  cy = 0;
-  %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
+  %applyET = @(u) backprojectionWithRotAndTrans( u, thetas, ...
+  %  detSize, cx, cy, nCols, nRows, pixSize, rotations, translations_m );
+  %applyET = @(u) radonWithRotAndTransAdjoint( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
-  %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
-  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
-  applyET = @(u) RTWithTranslation( u, translations_pix, nCols, RT );
+  applyET = @(u) RTWithRotAndTrans( u, rotations, translations_pix, ...
+    nCols, RT );
 
 %   maxIters = 1000;
 %   x0 = rand( nRows, nCols );
-%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( applyE, applyET, ...   
-%     applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
+%     applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
 %   figure;  plot(lambdaVals);  title('Lambda v Iteration');
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
