@@ -76,7 +76,7 @@ load 'RadonMatrix.mat';
   end
 
   alpha = 1;
-  nIter = 10000;
+  nIter = 1000;
   costs = zeros(nIter,1);
   minCost = 9999;  bestX = x;
 reconH = figure;
