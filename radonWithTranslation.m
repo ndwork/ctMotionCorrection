@@ -12,7 +12,7 @@ function sinogram = radonWithTranslation( img, pixSize, nDetectors, ...
   dOffset=0;  % center channel offset
 
   nTheta = numel(thetas);
-  dLocs = ( [0:nDetectors-1] - 0.5*(nDetectors-1) ) * detSize - dOffset;
+  dLocs = ( (0:nDetectors-1) - 0.5*(nDetectors-1) ) * detSize - dOffset;
   thetas_deg = thetas * 180/pi;
 
   Ny = size( img, 1 );  halfY = Ny/2;
@@ -23,28 +23,24 @@ function sinogram = radonWithTranslation( img, pixSize, nDetectors, ...
   ys = ys - halfY;
   radiusMask = sqrt( xs.*xs + ys.*ys ) < min(Nx/2,Ny/2);
 
-  if mod( Nx, 2 )==0
-    locs = ( ([0:Nx-1]) - 0.5*Nx + 0.5 ) * pixSize;
-  else
-    locs = ( ([0:Nx-1]) - floor(0.5*Nx) ) * pixSize;
-  end
+  pixLocs = ( (0:Nx-1) - 0.5*(Nx-1) ) * pixSize;
 
   translations_pix = translations_m / pixSize;
 
-  M = makeLinearInterpMatrix( locs, dLocs );
+  M = makeLinearInterpMatrix( pixLocs, dLocs );
 
   sinogram = zeros( nTheta, nDetectors );
   parfor th=1:numel(thetas)
-    theta = thetas_deg(th);
     thisTrans_pix = translations_pix(th,:);
     translated = translateImg( img, thisTrans_pix );
     
     masked = translated .* radiusMask;
-    
+
+    theta = thetas_deg(th);
     rotImg = imrotate( masked, theta, 'bilinear', 'crop' );
     sumResult = sum( rotImg, 1 ) * pixSize;
 
-    extrapVal = 0;
+    %extrapVal = 0;
     %interped = interp1( locs, sumResult, dLocs, 'linear', extrapVal );
     interped = M * sumResult';
 

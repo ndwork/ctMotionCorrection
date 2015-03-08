@@ -16,7 +16,7 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
 
-  if nargin < 10, lambda=nrmK*nrmK; end;
+  if nargin < 9, lambda=1d2; end;
   
   gamma = 1d-5;   % Regularization parameter
 
@@ -51,7 +51,7 @@ load 'RadonMatrix.mat';
   zD1 = zeros( nRows, nCols );
   zD2 = zeros( nRows, nCols );
 
-  if nargin < 11, mu = lambda / nrmK^2 * 0.99; end;
+  if nargin < 10, mu = lambda / nrmK^2 * 0.9; end;
 
   nIter = 10000;
   costs = zeros(nIter,1);
@@ -85,8 +85,8 @@ reconH = figure;
     argZD1 = D1x + xBarD1;
     argZD2 = D2x + xBarD2;
     zE = ( lambda*sinogram + argZE ) / (lambda + 1);
-    zD1 = softThresh( argZD1, lambda );
-    zD2 = softThresh( argZD2, lambda );
+    zD1 = softThresh( argZD1, lambda*gamma );
+    zD2 = softThresh( argZD2, lambda*gamma );
 
     % Update xBar
     xBarE = xBarE + Ex - zE;
