@@ -12,16 +12,17 @@ function run_ctCorrectForTranslation
   im = phantom();
   im = imresize( im, [nCols nRows], 'bilinear' );
 
-  figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
+  figure; imshow( imresize(im,10,'nearest'), [] );
+  title('original'); drawnow;
 
   detSize = 0.001;
-  dTheta = 2 * pi/180;
+  dTheta = 1 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
   nThetas = numel(thetas);
 
   nDetectors = nCols*2;
 
-  nonzeroTranslations = 1;
+  nonzeroTranslations = 0;
   if nonzeroTranslations > 0
     maxVerticalShift = 0.01; % in meters
     maxHorizontalShift = 0.02; % in meters

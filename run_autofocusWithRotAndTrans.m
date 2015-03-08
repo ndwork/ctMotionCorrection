@@ -11,37 +11,42 @@ function [finaltranslation] = run_autofocusWithRotAndTrans
   nThetas = numel(thetas);
   
   %Translation of Image
-  maxHorizontalShift = -0.1;
-  maxVerticalShift = 0.1;
+  %maxHorizontalShift = -0.1;
+  %maxVerticalShift = 0.1;
+  maxHorizontalShift = 0;
+  maxVerticalShift = 0;
   
   translations = zeros( nThetas, 2 );
   translations(:,1) = linspace(0,maxVerticalShift,nThetas);
   translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
-  
+
   %Rotation of Image
-  maxRotation = 0 * pi/180;
+  maxRotation = 6 * pi/180;
   rotations = linspace(0,maxRotation,nThetas);
-  
+
   im = phantom();
   im = imresize( im, [nCols nRows], 'bilinear' );
-
-  figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
+  %figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
   
   im = padImgForRadon( im, maxHorizontalShift, maxVerticalShift, ...
       pixSize );
-  
+
   sinogram = radonWithRotAndTrans( im, pixSize, nDetectors, detSize, ...
    thetas, rotations, translations );
 
-  minX = -0.1;
+  %minX = -0.1;
+  minX = 0;
   minY = 0;
-  maxX = 0.1;
+  %maxX = 0.1;
+  maxX = 0;
   maxY = 0;
-  maxRot = 100*pi/180;
+  maxRot = 10*pi/180;
   dx = .1;
   dy = .1;
-  dr = 50*pi/180;
+  dr = 2*pi/180;
 
-  [finaltranslation] = autofocusWithRotAndTrans(sinogram, minX, maxX, dx, minY, maxY, dy, maxRot, dr, nRows, nCols, nDetectors, pixSize, detSize, thetas, method);
+  [finaltranslation] = autofocusWithRotAndTrans(sinogram, minX, maxX, ...
+    dx, minY, maxY, dy, maxRot, dr, nRows, nCols, nDetectors, pixSize, ...
+    detSize, thetas, method);
     
 end
