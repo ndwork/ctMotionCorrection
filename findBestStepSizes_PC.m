@@ -10,11 +10,12 @@ function [optimalSigma, optimalTau] = findBestStepSizes_PC(minSigma,...
   level = p.Results.level;
 
   levelThresh = 3;
+  nSteps = 10;
 
   %if nargin < 16, level=0; end;
 
-  sigmas = logspace(log10(minSigma),log10(maxSigma),5);
-  taus = logspace(log10(minTau),log10(maxTau),5);
+  sigmas = logspace(log10(minSigma),log10(maxSigma),nSteps);
+  taus = logspace(log10(minTau),log10(maxTau),nSteps);
 
   nSigmas = numel(sigmas);
   nTaus = numel(taus);
@@ -42,15 +43,17 @@ function [optimalSigma, optimalTau] = findBestStepSizes_PC(minSigma,...
   [~, colIndex] = min(minTaus);
 
   optimalTau = taus(colIndex);
-  optimalSigma = sigmas(rowIndexes(colIndex));
+  rowSigma = rowIndexes(colIndex);
+  optimalSigma = sigmas(rowSigma);
 
   level = level+1;
 
   if level <= levelThresh
-    minSigma = optimalSigma / 10;
-    maxSigma = optimalSigma * 10;
-    minTau = optimalTau / 10;
-    maxTau = optimalTau * 10;
+    minSigma = sigmas(max(rowSigma-1,1));
+    maxSigma = sigmas(min(rowSigma+1,nSteps));
+    minTau = taus(max(colIndex-1,1));
+    maxTau = taus(min(colIndex+1,nSteps));
+
     [optimalSigma, optimalTau] = findBestStepSizes_PC(minSigma,... 
       maxSigma, minTau, maxTau, nrmK, sinogram,...
       nDetectors, detSize, thetas, translations, nCols, nRows, ...
