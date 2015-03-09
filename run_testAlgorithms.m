@@ -4,7 +4,7 @@ function run_testAlgorithms
   addpath(genpath('.'));
 
   % Reconstruction parameters
-  method = 'PC';    % Options: GD, PC, LADMM
+  method = 'LADMM';    % Options: GD, PC, LADMM
   inputMatrix = 'deblur'; % Options: rand (random matrix), deblur (image 
                         % deblurring function
   cx = 0;   nCols=50;
@@ -21,7 +21,7 @@ function run_testAlgorithms
 %   maxVerticalShift = 0.01; % in meters
 %   maxHorizontalShift = 0.02; % in meters
 
-maxVerticalShift = 0; % in meters
+  maxVerticalShift = 0; % in meters
   maxHorizontalShift = 0; % in meters
   translations = zeros( nThetas, 2 );
   %translations(:,1) = linspace(0,maxVerticalShift,nThetas);

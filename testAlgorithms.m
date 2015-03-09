@@ -34,17 +34,17 @@ function [recon,costs] = testAlgorithms( nDetectors, ...
 
     case 'deblur'
       % kernel = fspecial('gaussian',[15 15],7);
-      kernel = fspecial('gaussian',[9 9],4); % use this one with the Barbara image below.
+      kernel = fspecial('gaussian',[9 9],3); % use this one with the Barbara image below.
       % kernel = randn(15,15);
 
       kernelTrans = fliplr(flipud(kernel));
 
-      applyE = @(x) imfilter(x,kernel,'circular');  % K is a blur operator.
-      applyET = @(y) imfilter(y,kernelTrans,'circular');
+      applyA = @(x) imfilter(x,kernel,'circular');  % K is a blur operator.
+      applyAT = @(y) imfilter(y,kernelTrans,'circular');
 
       I = imread('barbara.png');
       I = double(I(:,:,1));
-      I = imresize(I,.5);
+%       I = imresize(I,.5);
 
       [nRows,nCols] = size(I);
 
@@ -54,15 +54,21 @@ function [recon,costs] = testAlgorithms( nDetectors, ...
       I = I/mx;
       xTest = I;
 
-      b = applyE(I);
+      b = applyA(I);
       noise = (1e-3)*randn(nRows,nCols);
       b = b + noise;
       figure('Name','b')
       imshow(b,[]) % b is a blurry image, ready to be deblurred.
       sinogram = b;
 
-      gamma = 1/300000; % This is the regularization parameter that gets multiplied by the regularization term TV(x).
-
+      gamma = 1 / 100000;
+      
+      eigValArr_A = eigValArrForCyclicConvOp(kernel,nRows,nCols);
+      eigValArr_ATrans = conj(eigValArr_A);
+      
+      applyE = @(x) applyCyclicConv2D(x,eigValArr_A);
+      applyET = @(x) applyCyclicConv2D(x,eigValArr_ATrans);
+      
   end
   
   
