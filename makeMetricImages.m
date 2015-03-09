@@ -1,4 +1,5 @@
-function makeMetricImages
+function [x, metric_normgrad, metric_laplacian, metric_histogram, ...
+  metric_variance] = makeMetricImages()
 close all;
     img0 = phantom();
     y = 0;  
@@ -28,41 +29,49 @@ close all;
        %imshow(img,[]); 
     end
     
-    figure;
-    plot(x,metric_normgrad,'LineWidth',2);
-    xlabel('Image Shift (pixels)','FontSize',12)
-    ylabel('Normalized Gradient Squared','FontSize',12)
-    set(gca,'XTick',linspace(-5,5,3))
-    L = get(gca,'YLim');
-    set(gca,'YTick',linspace(L(1),L(2),3))
-    set(gca,'XMinorTick','on','YMinorTick','on')
-    
-    figure;
-    plot(x,metric_laplacian,'LineWidth',2);
-    xlabel('Image Shift (pixels)','FontSize',12)
-    ylabel('Laplacian','FontSize',12)
-    set(gca,'XTick',linspace(-5,5,3))
-    L = get(gca,'YLim');
-    set(gca,'YTick',linspace(L(1),L(2),3))
-    set(gca,'XMinorTick','on','YMinorTick','on')
-    
-    figure;
-    plot(x,metric_histogram,'LineWidth',2);
-    xlabel('Image Shift (pixels)','FontSize',12)
-    ylabel('Histogram Energy','FontSize',12)
-    set(gca,'XTick',linspace(-5,5,3))
-    L = get(gca,'YLim');
-    set(gca,'YTick',linspace(L(1),L(2),3))
-    set(gca,'XMinorTick','on','YMinorTick','on')
-    
-    figure;
-    plot(x,metric_variance,'LineWidth',2); 
-    xlabel('Image Shift (pixels)','FontSize',12)
-    ylabel('Variance','FontSize',12)
-    set(gca,'XTick',linspace(-5,5,3))
-    L = get(gca,'YLim');
-    set(gca,'YTick',linspace(L(1),L(2),3))
-    set(gca,'XMinorTick','on','YMinorTick','on')
+%     lw = 2;
+%     fs = 16; % font size for labels
+%     ts = 14; % font size for tick marks
+%     
+%     figure;
+%     set(gca,'FontSize',ts)
+%     plot(x,metric_normgrad,'LineWidth',lw);
+%     xlabel('Image Shift (pixels)','FontSize',fs)
+%     ylabel('Normalized Gradient Squared','FontSize',fs)
+%     set(gca,'XTick',linspace(-5,5,3))
+%     L = get(gca,'YLim');
+%     set(gca,'YTick',linspace(L(1),L(2),3))
+%     set(gca,'XMinorTick','on','YMinorTick','on')
+%     
+%     figure;
+%     set(gca,'FontSize',ts)
+%     plot(x,metric_laplacian,'LineWidth',lw);
+%     xlabel('Image Shift (pixels)','FontSize',fs)
+%     ylabel('Laplacian','FontSize',fs)
+%     set(gca,'XTick',linspace(-5,5,3))
+%     L = get(gca,'YLim');
+%     set(gca,'YTick',linspace(L(1),L(2),3))
+%     set(gca,'XMinorTick','on','YMinorTick','on')
+%     
+%     figure;
+%     set(gca,'FontSize',ts)
+%     plot(x,metric_histogram,'LineWidth',lw);
+%     xlabel('Image Shift (pixels)','FontSize',fs)
+%     ylabel('Histogram Energy','FontSize',fs)
+%     set(gca,'XTick',linspace(-5,5,3))
+%     L = get(gca,'YLim');
+%     set(gca,'YTick',linspace(L(1),L(2),3))
+%     set(gca,'XMinorTick','on','YMinorTick','on')
+%     
+%     figure;
+%     set(gca,'FontSize',ts)
+%     plot(x,metric_variance,'LineWidth',lw); 
+%     xlabel('Image Shift (pixels)','FontSize',fs)
+%     ylabel('Variance','FontSize',fs)
+%     set(gca,'XTick',linspace(-5,5,3))
+%     L = get(gca,'YLim');
+%     set(gca,'YTick',linspace(L(1),L(2),3))
+%     set(gca,'XMinorTick','on','YMinorTick','on')
 end
 
 function [out] = normgrad(img)

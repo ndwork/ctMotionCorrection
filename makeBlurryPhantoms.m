@@ -1,7 +1,7 @@
-function [img] = makeBlurryPhantoms_copy()
+function [img] = makeBlurryPhantoms(horizontaltrans)
     img0 = phantom();
     y = 0;
-    horizontaltrans = [5,1,0];
+%     horizontaltrans = [5,1,0];
     
     img = zeros(size(phantom,1), size(phantom,2), 3);
     
