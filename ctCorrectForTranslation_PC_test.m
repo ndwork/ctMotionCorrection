@@ -20,11 +20,14 @@ function [recon,costs] = ctCorrectForTranslation_PC_test( sinogram,...
 %    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
 %   figure;  plot(lambdaVals);  title('Lambda v Iteration');
 %   save( 'nrmK_deblur.mat', 'nrmK', 'lambdaVals' );
-  load 'nrmK_rand.mat';
+  load 'nrmK_deblur.mat';
   
   if nargin < 12
-    sigma = 1/nrmK;
-    tau = 0.99*(1/nrmK);
+%     sigma = 1/nrmK;
+%     tau = 0.99*(1/nrmK);
+
+      tau = 10;
+      sigma = 1/(tau*nrmK^2);
   end;
 
   x = zeros( nRows, nCols );
@@ -32,6 +35,12 @@ function [recon,costs] = ctCorrectForTranslation_PC_test( sinogram,...
   yE = zeros( size(sinogram,1), size(sinogram,2) );
   yD1 = zeros( nRows, nCols );
   yD2 = zeros( nRows, nCols );
+% 
+%   x = sinogram;
+%   xBar = x;
+%   yE = applyE(x);
+%   yD1 = applyD1(x);
+%   yD2 = applyD2(x);
 
   if sigma*tau > 1 / (nrmK*nrmK)
     error('Improperly chosen step sizes');

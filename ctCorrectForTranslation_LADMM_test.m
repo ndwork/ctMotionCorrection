@@ -16,7 +16,7 @@ function [recon,costs] = ctCorrectForTranslation_LADMM_test( sinogram, ...
 %    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
 %   figure;  plot(lambdaVals);  title('Lambda v Iteration');
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
-  load 'nrmK_rand.mat';
+  load 'nrmK_deblur.mat';
   
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
   applyD2 = @(u) cat(1, u(2:end,:) - u(1:end-1,:), zeros(1,nCols));
@@ -40,8 +40,7 @@ reconH = figure;
   for i=1:nIter
     if mod(i,5)==0
       disp(['Working on iteration ', num2str(i), ' of ', num2str(nIter)]);
-%       figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
-      figure(reconH);  imshow( x, [] );
+      figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
       title(['Iteration ', num2str(i)]);  drawnow;
     end
 
@@ -72,14 +71,15 @@ reconH = figure;
     argZD1 = D1x + xBarD1;
     argZD2 = D2x + xBarD2;
     zE = ( lambda*sinogram + argZE ) / (lambda + 1);
-    zD1 = softThresh( argZD1, lambda );
-    zD2 = softThresh( argZD2, lambda );
+    zD1 = softThresh( argZD1, lambda*gamma );
+    zD2 = softThresh( argZD2, lambda*gamma );
 
     % Update xBar
     xBarE = xBarE + Ex - zE;
     xBarD1 = xBarD1 + D1x - zD1;
     xBarD2 = xBarD2 + D2x - zD2;
   end
+close( reconH );
 
   recon = bestX;
 
