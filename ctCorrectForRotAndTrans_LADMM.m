@@ -1,8 +1,8 @@
 
-function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
-  nDetectors, detSize, thetas, translations_m, nCols, nRows, pixSize, ...
-  lambda, mu )
-  % This function uses Pock-Chambolle to determine the reconstruction
+function [recon,costs] = ctCorrectForRotAndTrans_LADMM( sinogram, ...
+  nDetectors, detSize, thetas, rotations, translations_m, nCols, nRows, ...
+  pixSize, varargin )
+  % This function uses Linearized ADMM to determine the reconstruction
   % image based on the known translations
   % sinogram is an MxN array
   % translation is an Mx2 element array; each row of the array is the
@@ -16,7 +16,21 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
 %   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
 
-  if nargin < 9, lambda=1d2; end;
+  defaultLambda = [];
+  defaultMu = [];
+  p = inputParser;
+  p.addOptional( 'lambda', defaultLambda, @isnumeric );
+  p.addOptional( 'mu', defaultMu, @isnumeric );
+  p.parse( varargin{:} );
+  lambda = p.Results.lambda;
+  mu = p.Results.mu;
+  
+  if numel(lambda)==0
+    lambda = 1d2;
+  end
+  if numel(mu) == 0
+    mu = lambda / (nrmK*nrmK);
+  end
   
   gamma = 1d-5;   % Regularization parameter
 
@@ -31,16 +45,18 @@ load 'RadonMatrix.mat';
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;
-  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
-  %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
-  %  detSize, thetas, translations_m );
+  applyE = @(u) RWithRotAndTrans( u, rotations, translations_pix, ...
+    nDetectors, R );
+  %applyE = @(u) radonWithRotAndTrans( u, pixSize, nDetectors, ...
+  %  detSize, thetas, rotations, translations_m );
 
-  %cx = 0;  cy = 0;
-  %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
+  cx = 0;  cy = 0;
+  %applyET = @(u) backprojectionWithRotAndTrans( u, thetas, ...
+  %  detSize, cx, cy, nCols, nRows, pixSize, rotations, translations_m );
+  %applyET = @(u) radonWithRotAndTransAdjoint( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
-  %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
-  %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
-  applyET = @(u) RTWithTranslation( u, translations_pix, nCols, RT );
+  applyET = @(u) RTWithRotAndTrans( u, rotations, translations_pix, ...
+    nCols, RT );
 
   nThetas = numel( thetas );
   x = zeros( nRows, nCols );
@@ -50,8 +66,6 @@ load 'RadonMatrix.mat';
   zE = zeros( nThetas, nDetectors );
   zD1 = zeros( nRows, nCols );
   zD2 = zeros( nRows, nCols );
-
-  if nargin < 10, mu = lambda / nrmK^2 * 0.9; end;
 
   nIter = 10000;
   costs = zeros(nIter,1);

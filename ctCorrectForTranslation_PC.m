@@ -15,29 +15,35 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
+  translations_pix = translations_m / pixSize;
+
+
   %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
   %  detSize, thetas);
-load 'RadonMatrix.mat';
+  %save( 'RadonMatrix_64x64.mat', 'R' );
+  load 'RadonMatrix.mat';
   RT = transpose(R);
 
-  translations_pix = translations_m / pixSize;
   applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
+  %applyE = @(u) RWithT( u, transMatrices, nDetectors, R );
   %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
   %  detSize, thetas, translations_m );
 
+  applyET = @(u) RTWithTranslation( u, translations_pix, nCols, RT );
+  %applyET = @(u) RTWithTT( u, transMatricesT, nCols, RT );
   %cx = 0;  cy = 0;
   %applyET = @(u) backprojectionWithTranslation( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
   %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
-  applyET = @(u) RTWithTranslation( u, translations_pix, nCols, RT );
 
-%   maxIters = 1000;
-%   x0 = rand( nRows, nCols );
-%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( applyE, applyET, ...   
-%     applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
-%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
-%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
+
+  %maxIters = 1000;
+  %x0 = rand( nRows, nCols );
+  %[nrmK, lambdaVals] = estimateNormKByPowerIteration( applyE, applyET, ...   
+  %  applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+  %figure;  plot(lambdaVals);  title('Lambda v Iteration');
+  %save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
   load 'nrmK.mat';
 
   defaultSigma = [];
@@ -51,17 +57,20 @@ load 'RadonMatrix.mat';
   if numel( sigma ) == 0 && numel( tau ) == 0
     %sigma = 1/nrmK;
     %tau = 1/nrmK;
-    minStep = 1e-5; 
-    maxStep = 1e5;
+    %minStep = 1e-5; 
+    %maxStep = 1e5;
     %[sigma, tau] = findBestStepSizes_PC(minStep,... 
-    %  maxStep, minStep, maxStep, nrmK, sinogram, nDetectors, ...
-    %  detSize, thetas, translations_m, nCols, nRows, pixSize, 0);
-    %save( 'optimalSteps.mat','sigma', 'tau' );
+    %maxStep, minStep, maxStep, nrmK, sinogram, nDetectors, ...
+    %detSize, thetas, translations_m, nCols, nRows, pixSize, 0);
+    %save( 'optimalSteps_64x64.mat','sigma', 'tau' );
     load 'optimalSteps.mat'
   elseif numel( sigma ) == 0
     tau = 1/(nrmK^2 * sigma );
   elseif numel( tau ) == 0
     sigma = 1/(nrmK^2 * tau );
+  end
+  if sigma*tau > 1 / (nrmK*nrmK)
+    error('Improperly chosen step sizes');
   end
 
   nThetas = numel( thetas );
@@ -70,10 +79,6 @@ load 'RadonMatrix.mat';
   yE = zeros( nThetas, nDetectors );
   yD1 = zeros( nRows, nCols );
   yD2 = zeros( nRows, nCols );
-
-  if sigma*tau > 1 / (nrmK*nrmK)
-    error('Improperly chosen step sizes');
-  end
 
   alpha = 1;
   nIter = 1000;

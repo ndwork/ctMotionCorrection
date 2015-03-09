@@ -12,8 +12,6 @@ function [optimalSigma, optimalTau] = findBestStepSizes_PC(minSigma,...
   levelThresh = 3;
   nSteps = 10;
 
-  %if nargin < 16, level=0; end;
-
   sigmas = logspace(log10(minSigma),log10(maxSigma),nSteps);
   taus = logspace(log10(minTau),log10(maxTau),nSteps);
 
