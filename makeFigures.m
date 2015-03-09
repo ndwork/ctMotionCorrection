@@ -93,6 +93,13 @@ function [] = makeFigures()
   %% autofocus result - no translation, with translation, with rotation and translation
 
   % this is in makeBlurryPhantoms.m
+  images = makeBlurryPhantoms_copy();
+  image1 = images(:,:,1);
+  figure; imshow(image1,[])
+  image2 = images(:,:,2);
+  figure; imshow(image2,[])
+  image3 = images(:,:,3);
+  figure; imshow(image3,[])
   
   %% compare to inverse radon transform - no translation, with translation, with rotation and translation
 
