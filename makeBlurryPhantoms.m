@@ -1,10 +1,15 @@
-function makeBlurryPhantoms
+function [img] = makeBlurryPhantoms_copy()
     img0 = phantom();
     y = 0;
     horizontaltrans = [5,1,0];
-    for i = horizontaltrans
-       figure;
-       x = i;
+    
+    img = zeros(size(phantom,1), size(phantom,2), 3);
+    
+    for k = 1:numel(horizontaltrans)
+    
+%     for i = horizontaltrans
+%        figure;
+       x = horizontaltrans(k);
        img1 = translateImg(img0,[0,x]);
        img2 = translateImg(img0,[0,2*x]);
        img3 = translateImg(img0,[0,3*x]);
@@ -14,8 +19,9 @@ function makeBlurryPhantoms
        img7 = translateImg(img0,[0,x/5]);
        img8 = translateImg(img0,[0,x/6]);
 
-       img = img0+img1+img2+img3+img4+img5+img6+img7+img8;
-       clf;
-       imshow(img,[]); 
+       img(:,:,k) = img0+img1+img2+img3+img4+img5+img6+img7+img8;
+%        clf;
+%        imshow(img(:,:,k),[]); 
+       
     end
 end

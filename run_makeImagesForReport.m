@@ -4,7 +4,8 @@ close all;
     translations = [0.5,0]; %meters
     pixsize = 0.01;
     translations = translations/pixsize; %pixels
-    rotations = -60; %degrees
+    rotations = -120; %degrees
+    img = imrotate(img,-rotations/2,'crop');
     img = padImgForRadon(img,50,50,1);
     figure;
     imshow(img,[])
