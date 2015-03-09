@@ -5,7 +5,7 @@ close all;
     pixsize = 0.01;
     translations = translations/pixsize; %pixels
     rotations = -60; %degrees
-    img = padImgForRadon(img,100,100,1);
+    img = padImgForRadon(img,50,50,1);
     figure;
     imshow(img,[])
     makeImagesForReport(img,rotations,translations)
