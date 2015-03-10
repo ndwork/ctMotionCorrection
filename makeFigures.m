@@ -3,12 +3,34 @@ function [] = makeFigures()
   close all; clear
 
   %% cartoon explaining what modified radon transform is
-
-  % this is in run_makeImagesForReport.m
+  close all;
   
-  %% PC results - no translation, with translation, with translation and rotation
+  img = phantom();
+  translations = [0.5,0]; %meters
+  pixsize = 0.01;
+  translations = translations/pixsize; %pixels
+  rotations = -120; %degrees
+  img = imrotate(img,-rotations/2,'crop');
+  img = padImgForRadon(img,50,50,1);
+%     figure;
+%     imshow(img,[])
+  numFrames = 4;
+  images =  makeImagesForReport(img,rotations,translations,numFrames);
+  
+  for k = 1:numFrames
+    thisImage = images(:,:,k);
+    figure; imshow(thisImage, [])
+    fileName = [char(pwd) '/figures/' 'phantomRollingImage' ...
+      num2str(k) '.eps'];
+    saveas(gcf,fileName,'epsc'); 
+  end
+  
+  %% PC, LADMM, and GD results
+  % no translation, with translation, with translation and rotation
+  close all;
 
   % Reconstruction parameters
+  noiseLevel = 0;
   cy = 0;   nRows=5;
   cx = 0;   nCols=5;
   pixSize = 0.001; % meters / pixel
@@ -51,6 +73,10 @@ function [] = makeFigures()
 
       sinogram = radonWithRotAndTrans( im, pixSize, nDetectors, detSize, ...
        thetas, rotations, translations );
+     
+     
+     noise = noiseLevel*randn(size(sinogram,1),size(sinogram,2));
+     sinogram = sinogram + noise;
 
       if (rotation(k,1) == 0) && (rotation(k,2) == 0)
         [recon,costs] = ctCorrectForTranslation( sinogram, nDetectors, ...
@@ -79,20 +105,77 @@ function [] = makeFigures()
 
     end
   end
-              
-
-  
-  
-  %% LADMM results - no translation, with translation, with translation and rotation
-
-  
-  %% GD results - no translation, with translation, with translation and rotation
-
-  
   
   %% autofocus result - no translation, with translation, with rotation and translation
+  close all;
+  
+  horizontaltrans = [5 2 0];
+  images = makeBlurryPhantoms(horizontaltrans);
+  
+  for k = 1:numel(horizontaltrans)
+    thisImage = images(:,:,k);
+    figure; imshow(thisImage, [])
+    fileName = [char(pwd) '/figures/' 'blurryPhantomWithTrans' ...
+      num2str(horizontaltrans(k)) '.eps'];
+    saveas(gcf,fileName,'epsc');
+  end
+  
+  % plot image metrics
+  [x, metric_normgrad, metric_laplacian, metric_histogram, ...
+  metric_variance] = makeMetricImages();
 
-  % this is in makeBlurryPhantoms.m
+  lw = 2;
+  fs = 18; % font size for labels
+  ts = 16; % font size for tick marks
+  ys = 6; % number of y tick marks to show
+
+  figure;
+  set(gca,'FontSize',ts)
+  plot(x,metric_normgrad,'LineWidth',lw);
+  xlabel('Image Shift (pixels)','FontSize',fs)
+  ylabel('Normalized Gradient Squared','FontSize',fs)
+  set(gca,'XTick',linspace(-5,5,3))
+  L = get(gca,'YLim');
+  set(gca,'YTick',linspace(L(1),L(2),ys))
+  set(gca,'XMinorTick','on','YMinorTick','on')
+  fileName = [char(pwd) '/figures/' 'metric_normgrad.eps'];
+  saveas(gcf,fileName,'epsc');
+
+  figure;
+  set(gca,'FontSize',ts)
+  plot(x,metric_laplacian,'LineWidth',lw);
+  xlabel('Image Shift (pixels)','FontSize',fs)
+  ylabel('Laplacian','FontSize',fs)
+  set(gca,'XTick',linspace(-5,5,3))
+  L = get(gca,'YLim');
+  set(gca,'YTick',linspace(L(1),L(2),ys))
+  set(gca,'XMinorTick','on','YMinorTick','on')
+  fileName = [char(pwd) '/figures/' 'metric_laplacian.eps'];
+  saveas(gcf,fileName,'epsc');
+
+  figure;
+  set(gca,'FontSize',ts)
+  plot(x,metric_histogram,'LineWidth',lw);
+  xlabel('Image Shift (pixels)','FontSize',fs)
+  ylabel('Histogram Energy','FontSize',fs)
+  set(gca,'XTick',linspace(-5,5,3))
+  L = get(gca,'YLim');
+  set(gca,'YTick',linspace(L(1),L(2),ys))
+  set(gca,'XMinorTick','on','YMinorTick','on')
+  fileName = [char(pwd) '/figures/' 'metric_histogram.eps'];
+  saveas(gcf,fileName,'epsc');
+
+  figure;
+  set(gca,'FontSize',ts)
+  plot(x,metric_variance,'LineWidth',lw); 
+  xlabel('Image Shift (pixels)','FontSize',fs)
+  ylabel('Variance','FontSize',fs)
+  set(gca,'XTick',linspace(-5,5,3))
+  L = get(gca,'YLim');
+  set(gca,'YTick',linspace(L(1),L(2),ys))
+  set(gca,'XMinorTick','on','YMinorTick','on')
+  fileName = [char(pwd) '/figures/' 'metric_variance.eps'];
+  saveas(gcf,fileName,'epsc');
   
   %% compare to inverse radon transform - no translation, with translation, with rotation and translation
 
