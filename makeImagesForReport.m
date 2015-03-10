@@ -1,4 +1,4 @@
-function makeImagesForReport(img,rotations,translations)
+function [images] = makeImagesForReport(img,rotations,translations,numFrames)
 %rotations: max rotation in degrees
 %translations: [max x translation, max y translation]
 
@@ -17,7 +17,12 @@ r = linspace(0,rotations,numel(thetas));
 x = linspace(0,translations(1),numel(thetas));
 y = linspace(0,translations(2),numel(thetas));
 
+frames = linspace(1,numel(thetas),numFrames);
+frames = [floor(frames) 0];
+k = 1;
+
 movie = figure;
+images = zeros(size(img,1), size(img,2), numFrames);
 for t = 1:numel(thetas)
     line1 = imrotate(lines,thetas(t),'crop');
     img1 = imrotate(img,r(t),'crop');
@@ -25,7 +30,13 @@ for t = 1:numel(thetas)
     img3 = img2+line1;
     index = find(img3>1);
     img3(index) = 1;
-    figure(movie); clf; imshow(img3,[]);
+    figure(movie); 
+    clf; 
+    imshow(img3,[]);
+    if t == frames(k)
+      images(:,:,k) = img3;
+      k = k + 1;
+    end
 end
 
 end

@@ -7,7 +7,8 @@ close all;
     rotations = -120; %degrees
     img = imrotate(img,-rotations/2,'crop');
     img = padImgForRadon(img,50,50,1);
-    figure;
-    imshow(img,[])
-    makeImagesForReport(img,rotations,translations)
+%     figure;
+%     imshow(img,[])
+    numFrames = 4;
+    images = makeImagesForReport(img,rotations,translations,numFrames);
 end
