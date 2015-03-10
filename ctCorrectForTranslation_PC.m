@@ -15,14 +15,12 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  translations_pix = translations_m / pixSize;
-
-
   %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
   %  detSize, thetas);
-  %save( 'RadonMatrix_64x64.mat', 'R' );
-  load 'RadonMatrix.mat';
+  load 'RadonMatrix_32x32.mat';
   RT = transpose(R);
+
+  translations_pix = translations_m / pixSize;
 
   applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
   %applyE = @(u) RWithT( u, transMatrices, nDetectors, R );
@@ -36,7 +34,6 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
   %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
-
 
   %maxIters = 1000;
   %x0 = rand( nRows, nCols );
@@ -63,7 +60,14 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
     %maxStep, minStep, maxStep, nrmK, sinogram, nDetectors, ...
     %detSize, thetas, translations_m, nCols, nRows, pixSize, 0);
     %save( 'optimalSteps_64x64.mat','sigma', 'tau' );
-    load 'optimalSteps.mat'
+    %load 'optimalSteps.mat';
+    minSigma = 1e-5; 
+    maxSigma = 1e5;
+    %[sigma, tau] = findGoodStepSizes_PC( minSigma, maxSigma, nrmK, ...
+    %  sinogram, nDetectors, detSize, thetas, translations_m, nCols, ...
+    %  nRows, pixSize );
+    %save( 'goodStepsPC_32x32.mat', 'sigma', 'tau' );
+    load 'goodStepsPC_32x32.mat';
   elseif numel( sigma ) == 0
     tau = 1/(nrmK^2 * sigma );
   elseif numel( tau ) == 0
@@ -84,12 +88,12 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   nIter = 1000;
   costs = zeros(nIter,1);
   minCost = 9999;  bestX = x;
-reconH = figure;
+%reconH = figure;
   for i=1:nIter
-    if mod(i,10)==0
+    if mod(i,50)==0
       disp(['Working on iteration ', num2str(i), ' of ', num2str(nIter)]);
-      figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
-      title(['Iteration ', num2str(i)]);  drawnow;
+      %figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
+      %title(['Iteration ', num2str(i)]);  drawnow;
     end
 
     % Update y
@@ -125,7 +129,7 @@ reconH = figure;
     % Update xBar
     xBar = x + alpha * ( x - lastX );
   end
-close( reconH );
+%close( reconH );
 
   recon = bestX;
 end

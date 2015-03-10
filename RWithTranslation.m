@@ -1,5 +1,6 @@
 
 function sinogram = RWithTranslation( img, translations_pix, nDet, R )
+  % sinogram = RWithTranslation( img, translations_pix, nDet, R )
   % nDet is the number of detectors
 
   [M,~] = size(R);
@@ -9,7 +10,7 @@ function sinogram = RWithTranslation( img, translations_pix, nDet, R )
   [nTranslations,~] = size(translations_pix);
   if nTranslations ~= nThetas, error('Input error'); end;
 
-  for i=1:nThetas
+  parfor i=1:nThetas
     thisTrans_pix = translations_pix(i,:);
     translated = translateImg( img, thisTrans_pix );
     %sinogram(i,:) = R(nDet*(i-1)+1:nDet*i,:) * translated(:);

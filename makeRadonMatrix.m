@@ -8,10 +8,10 @@ function R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
   parfor i=1:nCols*nRows
     if mod(i,10)==0
       disp(['Making Radon Matrix ', num2str(i), ' of ', ...
-        num2str(nCols*nRows)]);
+        num2str(nRows*nCols)]);
     end
 
-    img = zeros(nCols,nRows);
+    img = zeros(nRows,nCols);
     img(i) = 1;
     Rimg = radonTransform( img, pixSize, nDetectors, ...
       detSize, thetas );
