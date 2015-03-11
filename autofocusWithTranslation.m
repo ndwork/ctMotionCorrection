@@ -1,14 +1,14 @@
-function [final] = autofocus2(sinogram, minX, maxX, dx, minY, maxY, dy, nRows, nCols, nDetectors, pixSize, detSize, thetas, method)
+function [final] = autofocusWithTranslation(sinogram, minX, maxX, dx, minY, maxY, dy, nRows, nCols, nDetectors, pixSize, detSize, thetas, method)
     nThetas = numel(thetas);
 
     x = [minX:dx:maxX]; 
     y = [minY:dy:maxY]; 
         
     metric = zeros(numel(x),numel(y));
-    for i = 1:numel(x)  
-        for j = 1:numel(y)
-            maxVerticalShift = y(i); % in meters
-            maxHorizontalShift = x(i); % in meters
+    for i = 1:numel(x) 
+        maxHorizontalShift = x(i); % in meters
+        for j = 1:numel(y)          
+            maxVerticalShift = y(j); % in meters
             translations = zeros( nThetas, 2 );
             translations(:,1) = linspace(0,maxVerticalShift,nThetas);
             translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
@@ -24,5 +24,5 @@ function [final] = autofocus2(sinogram, minX, maxX, dx, minY, maxY, dy, nRows, n
 end
 function [out] = normgrad(img)
     imgv = img(:);
-    out = sum((abs(conv2([1;-1],imgv))./sum(abs(conv2([1;-1],imgv)))).^2);    
+    out = sum((abs(conv([1;-1],imgv))./sum(abs(conv([1;-1],imgv)))).^2);    
 end

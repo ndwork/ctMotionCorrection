@@ -23,8 +23,8 @@ function [finaltranslation] = run_autofocus
 
   nonzeroTranslations = 1;
   if nonzeroTranslations > 0
-    maxVerticalShift = 0.002; % in meters
-    maxHorizontalShift = 0.002; % in meters
+    maxVerticalShift = 0.02; % in meters
+    maxHorizontalShift = 0.02; % in meters
     translations = zeros( nThetas, 2 );
     translations(:,1) = linspace(0,maxVerticalShift,nThetas);
     translations(:,2) = linspace(0,maxHorizontalShift,nThetas);
@@ -43,11 +43,11 @@ function [finaltranslation] = run_autofocus
 
   minX = 0;
   minY = 0;
-  maxX = 0.002;
-  maxY = 0.002;
-  dx = 0.002;
-  dy = 0.002;
+  maxX = 0.02;
+  maxY = 0.02;
+  dx = 0.02;
+  dy = 0.02;
 
-  [finaltranslation] = autofocus2(sinogram, minX, maxX, dx, minY, maxY, dy, nRows, nCols, nDetectors, pixSize, detSize, thetas, method);
+  [finaltranslation] = autofocusWithTranslation(sinogram, minX, maxX, dx, minY, maxY, dy, nRows, nCols, nDetectors, pixSize, detSize, thetas, method);
 
 end
