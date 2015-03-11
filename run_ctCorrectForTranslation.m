@@ -4,14 +4,20 @@ function run_ctCorrectForTranslation
   addpath(genpath('.'));
 
   % Reconstruction parameters
-  method = 'PC';    % Options: GD, PC, LADMM
-  cy = 0;   nRows=32;
-  cx = 0;   nCols=32;
+  method = 'LADMM';    % Options: GD, PC, LADMM
+  cy = 0;   nRows=64;
+  cx = 0;   nCols=64;
   pixSize = 0.001; % meters / pixel
 
-  im = phantom();
+  datacase = 1;
+  switch datacase
+    case 1
+      im = phantom();
+    case 2
+      im = double( imread( 'lena.png' ) );
+  end
   im = imresize( im, [nCols nRows], 'bilinear' );
-
+  
   figure; imshow( imresize(im,10,'nearest'), [] );
   title('original'); drawnow;
 

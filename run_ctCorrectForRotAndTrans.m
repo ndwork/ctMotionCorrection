@@ -9,19 +9,27 @@ function run_ctCorrectForRotAndTrans
   cx = 0;   nCols=32;
   pixSize = 0.001; % meters / pixel
 
-  im = phantom();
+  datacase = 1;
+  switch datacase
+    case 1
+      im = phantom();
+      
+    case 2
+      im = double( imread( 'lena.png' ) );
+  end
   im = imresize( im, [nCols nRows], 'bilinear' );
 
-  figure; imshow( imresize(im,10,'nearest'), [] );  title('original');
+  figure; imshow( imresize(im,10,'nearest'), [] );
+  title('original');  drawnow;
 
   detSize = 0.001;
-  dTheta = 2 * pi/180;
+  dTheta = 1 * pi/180;
   thetas = 0:dTheta:pi-dTheta;
   nThetas = numel(thetas);
 
   nDetectors = nCols*2;
 
-  nonzeroTranslations = 1;
+  nonzeroTranslations = 0;
   if nonzeroTranslations
     maxVerticalShift = 0.01; % in meters
     maxHorizontalShift = 0.02; % in meters

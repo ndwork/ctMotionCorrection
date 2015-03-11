@@ -14,7 +14,7 @@ function [optimalLambda, optimalMu] = findGoodStepSizes_LADMM(minLambda,...
   lambdas = logspace(log10(minLambda),log10(maxLambda),nSteps);
 
   nLambdas = numel(lambdas);
-  mincosts = 9999 * ones(nLambdas,1);
+  mincosts = 99999 * ones(nLambdas,1);
   disp(['Working on level ', num2str(level)]);
   for i = 1:nLambdas
     disp(['findGoodStepSizes: Working on ', num2str(i), ...
