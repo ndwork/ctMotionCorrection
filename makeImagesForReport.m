@@ -14,8 +14,8 @@ lines(size(img,1)-300:size(img,1)-50,225:227) = 1;
 lines(size(img,1)-300:size(img,1)-50,250:252) = 1;
 
 r = linspace(0,rotations,numel(thetas));
-x = linspace(0,translations(1),numel(thetas));
-y = linspace(0,translations(2),numel(thetas));
+x = linspace(-translations(1),translations(1),numel(thetas));
+y = linspace(-translations(2),translations(2),numel(thetas));
 
 frames = linspace(1,numel(thetas),numFrames);
 frames = [floor(frames) 0];
