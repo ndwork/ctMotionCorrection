@@ -1,12 +1,15 @@
 function [] = makeFigures()
 
   close all; clear
-  runAutoFocus = 0;
+  runAutoFocus = 0; 
   runPCandLADMM = 0;
   runFilteredBackProjection = 1;
   runBlurryPhantom = 0;
   runBlurryPhantomMetrics = 0;
   runAnimation = 0;
+  
+  datacase = 'lena';
+%   datacase = 'phantom';
   
   
   %% PC, LADMM, and GD results
@@ -20,7 +23,14 @@ function [] = makeFigures()
     cx = 0;   nCols=32;
     pixSize = 0.001; % meters / pixel
 
-    img = phantom();
+%     img = phantom();
+    
+    switch datacase
+      case 'phantom'
+        img = phantom();
+      case 'lena'
+        img = double( imread( 'lena.png' ) );
+    end
     img = imresize( img, [nCols nRows], 'bilinear' );
 
     figure; imshow( imresize(img,10,'nearest'), [] );  
@@ -38,20 +48,21 @@ function [] = makeFigures()
     maxShift = [0     0; 
                 0.01  0.02; 
                 0.01  0.02]; % [maxVertical maxHorizontal]
-% maxShift = [0.01  0.02; 
-%                 0.01  0.02]; % [maxVertical maxHorizontal]
+% maxShift = [0.01  0.02]; % [maxVertical maxHorizontal]
     rotation = [0               0;
                 0               0;
                 -10 * pi/180    10 * pi/180]; % [maxRot minRot]
-% rotation = [0               0;
-%                 0               0]; % [maxRot minRot]
+% rotation = [-10 * pi/180    10 * pi/180]; % [maxRot minRot]
     imageNames = {'NoTransNoRot','TransAndNoRot','TransAndRot'};
-%     imageNames = {'TransAndNoRot','TransAndRot'};
+%     imageNames = {'TransAndRot'};
 
-    method = {'PC','LADMM'};    % Options: GD, PC, LADMM
-%     method = {'PC'};    % Options: GD, PC, LADMM
+%     method = {'PC','LADMM','GD'};    % Options: GD, PC, LADMM
+    method = {'LADMM'};    % Options: GD, PC, LADMM
     tic;
 
+    lw = 2;
+    fs = 18; % font size for labels
+    ts = 16; % font size for tick marks
     
     for m = 1:numel(method)
 %     FBPrun = 0;
@@ -75,14 +86,26 @@ function [] = makeFigures()
         sinogram = sinogram + noise;
        
        if runFilteredBackProjection == 1 && m == 1
-        recon = filteredBackProjection(sinogram, thetas, detSize, ...
-            nCols, nRows, pixSize);
-          
-        figure; imshow( imresize(recon,10,'nearest'), [] );
-        fileName = [char(pwd) '/figures/' 'imgFBP' ...
-          char(imageNames(k)) '.eps'];
-        saveas(gcf,fileName,'epsc');
-        title('Reconstructed image');
+          recon = filteredBackProjection(sinogram, thetas, detSize, ...
+              nCols, nRows, pixSize);
+          if (maxShift(k,1) == 0) && (maxShift(k,2) == 0)
+            figure; imshow( imresize(recon,10,'nearest'), [] );
+            fileName = [char(pwd) '/figures/' 'imgFBP' ...
+              char(imageNames(k)) '.eps'];
+            saveas(gcf,fileName,'epsc');
+            title('Reconstructed image');
+          else
+            xShiftPix = ceil(abs( maxShift(k,2) / pixSize));
+            yShiftPix = ceil(abs(maxShift(k,1) / pixSize));
+            
+            recon = recon(yShiftPix+1:end-yShiftPix,...
+              xShiftPix+1:end-xShiftPix);
+            figure; imshow( imresize(recon,10,'nearest'), [] );
+            fileName = [char(pwd) '/figures/' 'imgFBP' ...
+              char(imageNames(k)) '.eps'];
+            saveas(gcf,fileName,'epsc');
+            title('Reconstructed image');
+          end
          
 %          FBPrun = 1;
        end
@@ -106,10 +129,10 @@ function [] = makeFigures()
           saveas(gcf,fileName,'epsc');
           title('Reconstructed image');
 
-          figure; set(gca,'FontSize',14) 
-          plot( costs, 'LineWidth', 2 );
-          xlabel('Iteration','FontSize',14); 
-          ylabel('Cost Function','FontSize',14);
+          figure; set(gca,'FontSize',ts) 
+          plot( costs, 'LineWidth', lw );
+          xlabel('Iteration','FontSize',fs); 
+          ylabel('Cost Function','FontSize',fs);
           fileName = [char(pwd) '/figures/' 'costs' char(method(m)) ...
             char(imageNames(k)) '.eps'];
           saveas(gcf,fileName,'epsc');
