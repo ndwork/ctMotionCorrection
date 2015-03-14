@@ -35,7 +35,7 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
 
   translations_pix = translations_m / pixSize;
 
-  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
+  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, RT );
   %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
   %  detSize, thetas, translations_m );
 

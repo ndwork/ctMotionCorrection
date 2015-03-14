@@ -22,7 +22,7 @@ function recon = ctCorrectForTranslation_GD( sinogram, nDetectors, ...
   translations_pix = translations_m / pixSize;
 
   applyE = @(u) radonWithTranslation_GD( u, translations_pix, ...
-    nDetectors, nCols, nRows, R );
+    nDetectors, nCols, nRows, RT );
 
   nThetas = numel( thetas );
   applyET = @(u) backprojectionWithTranslation_GD( u, translations_pix, ...
@@ -46,10 +46,10 @@ end
 
 
 function out = radonWithTranslation_GD( u, translations_pix, ...
-  nDetectors, nCols, nRows, R )
+  nDetectors, nCols, nRows, RT )
 
   img = reshape( u, [nRows nCols] );
-  sinogram = RWithTranslation( img, translations_pix, nDetectors, R );
+  sinogram = RWithTranslation( img, translations_pix, nDetectors, RT );
   out = sinogram(:);
 end
 

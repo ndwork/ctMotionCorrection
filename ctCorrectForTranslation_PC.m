@@ -28,14 +28,15 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
   if numel(R) == 0
-    R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
-      detSize, thetas);
+    %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+    %  detSize, thetas);
+load 'radonMatrix_32x32.mat';
   end
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;
 
-  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );
+  applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, RT );
   %applyE = @(u) RWithT( u, transMatrices, nDetectors, R );
   %applyE = @(u) radonWithTranslation( u, pixSize, nDetectors, ...
   %  detSize, thetas, translations_m );
@@ -50,8 +51,9 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
 
   maxIters = 1000;
   x0 = rand( nRows, nCols );
-  [nrmK, ~] = estimateNormKByPowerIteration( applyE, applyET, ...   
-    applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+  %[nrmK, ~] = estimateNormKByPowerIteration( applyE, applyET, ...   
+  %  applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+  load 'nrmK.mat';
   %figure;  plot(lambdaVals);  title('Lambda v Iteration');
 
   if numel( sigma ) == 0 && numel( tau ) == 0
@@ -59,9 +61,10 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
     %tau = 1/nrmK;
     minSigma = 1e-5; 
     maxSigma = 1e5;
-    [sigma, tau] = findGoodStepSizes_PC( minSigma, maxSigma, nrmK, ...
-      sinogram, nDetectors, detSize, thetas, translations_m, nCols, ...
-      nRows, pixSize );
+    %[sigma, tau] = findGoodStepSizes_PC( minSigma, maxSigma, nrmK, ...
+    %  sinogram, nDetectors, detSize, thetas, translations_m, nCols, ...
+    %  nRows, pixSize );
+    load 'goodStepsPC_32x32.mat';
   elseif numel( sigma ) == 0
     tau = 1/(nrmK^2 * sigma );
   elseif numel( tau ) == 0
