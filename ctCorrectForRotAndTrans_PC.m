@@ -10,6 +10,18 @@ function [recon,costs] = ctCorrectForRotAndTrans_PC( sinogram, ...
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
+  defaultSigma = [];
+  defaultTau = [];
+  defaultR = [];
+  p = inputParser;
+  p.addOptional( 'sigma', defaultSigma, @isnumeric );
+  p.addOptional( 'tau', defaultTau, @isnumeric );
+  p.addOptional( 'radonMatrix', defaultR );
+  p.parse( varargin{:} );
+  sigma = p.Results.sigma;
+  tau = p.Results.tau;
+  R = p.Results.radonMatrix;
+  
   gamma = 1d-6;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
@@ -17,10 +29,10 @@ function [recon,costs] = ctCorrectForRotAndTrans_PC( sinogram, ...
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
-  %  detSize, thetas);
-  %save( 'RadonMatrix.mat', 'R' );
-load 'RadonMatrix.mat';
+  if numel(R) == 0
+    R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+      detSize, thetas);
+  end
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;
@@ -37,36 +49,28 @@ load 'RadonMatrix.mat';
   applyET = @(u) RTWithRotAndTrans( u, rotations, translations_pix, ...
     nCols, RT );
 
-%   maxIters = 1000;
-%   x0 = rand( nRows, nCols );
-%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
-%     applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+  maxIters = 1000;
+  x0 = rand( nRows, nCols );
+  [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
+    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
 %   figure;  plot(lambdaVals);  title('Lambda v Iteration');
-%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
-  load 'nrmK.mat';
-
-  defaultSigma = [];
-  defaultTau = [];
-  p = inputParser;
-  p.addOptional( 'sigma', defaultSigma, @isnumeric );
-  p.addOptional( 'tau', defaultTau, @isnumeric );
-  p.parse( varargin{:} );
-  sigma = p.Results.sigma;
-  tau = p.Results.tau;
+  
   if numel( sigma ) == 0 && numel( tau ) == 0
     %sigma = 1/nrmK;
     %tau = 1/nrmK;
     minStep = 1e-5; 
     maxStep = 1e5;
-    %[sigma, tau] = findBestStepSizes_PC(minStep,... 
-    %  maxStep, minStep, maxStep, nrmK, sinogram, nDetectors, ...
-    %  detSize, thetas, translations_m, nCols, nRows, pixSize, 0);
-    %save( 'optimalSteps.mat','sigma', 'tau' );
-    load 'optimalSteps.mat'
+    [sigma, tau] = findBestStepSizes_PC(minStep,... 
+      maxStep, minStep, maxStep, nrmK, sinogram, nDetectors, ...
+      detSize, thetas, translations_m, nCols, nRows, pixSize, 0);
+%     load 'goodStepsPC_64x64.mat'
   elseif numel( sigma ) == 0
     tau = 1/(nrmK^2 * sigma );
   elseif numel( tau ) == 0
     sigma = 1/(nrmK^2 * tau );
+  end
+  if sigma*tau > 1 / (nrmK*nrmK)
+    error('Improperly chosen step sizes');
   end
 
   nThetas = numel( thetas );
@@ -76,20 +80,16 @@ load 'RadonMatrix.mat';
   yD1 = zeros( nRows, nCols );
   yD2 = zeros( nRows, nCols );
 
-  if sigma*tau > 1 / (nrmK*nrmK)
-    error('Improperly chosen step sizes');
-  end
-
   alpha = 1;
   nIter = 1000;
   costs = zeros(nIter,1);
   minCost = 9999;  bestX = x;
-reconH = figure;
+%   reconH = figure;
   for i=1:nIter
-    if mod(i,10)==0
+    if mod(i,50)==0
       disp(['Working on iteration ', num2str(i), ' of ', num2str(nIter)]);
-      figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
-      title(['Iteration ', num2str(i)]);  drawnow;
+%       figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
+%       title(['Iteration ', num2str(i)]);  drawnow;
     end
 
     % Update y
@@ -125,7 +125,7 @@ reconH = figure;
     % Update xBar
     xBar = x + alpha * ( x - lastX );
   end
-close( reconH );
+% close( reconH );
 
   recon = bestX;
 end

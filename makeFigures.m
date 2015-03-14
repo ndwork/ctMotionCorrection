@@ -1,15 +1,15 @@
 function [] = makeFigures()
 
   close all; clear
-  runAutoFocus = 0; 
-  runPCandLADMM = 0;
+  runPCandLADMM = 1;
+  plotLearningCurves = 1;
   runFilteredBackProjection = 1;
   runBlurryPhantom = 0;
   runBlurryPhantomMetrics = 0;
   runAnimation = 0;
   
-  datacase = 'lena';
-%   datacase = 'phantom';
+%   datacase = 'lena';
+  datacase = 'phantom';
   
   
   %% PC, LADMM, and GD results
@@ -18,12 +18,10 @@ function [] = makeFigures()
     close all;
 
     % Reconstruction parameters
-    noiseLevel = 0;
-    cy = 0;   nRows=32;
-    cx = 0;   nCols=32;
+    noiseLevel = 1e-3;
+    cy = 0;   nRows=64;
+    cx = 0;   nCols=64;
     pixSize = 0.001; % meters / pixel
-
-%     img = phantom();
     
     switch datacase
       case 'phantom'
@@ -48,16 +46,16 @@ function [] = makeFigures()
     maxShift = [0     0; 
                 0.01  0.02; 
                 0.01  0.02]; % [maxVertical maxHorizontal]
-% maxShift = [0.01  0.02]; % [maxVertical maxHorizontal]
+
     rotation = [0               0;
                 0               0;
                 -10 * pi/180    10 * pi/180]; % [maxRot minRot]
-% rotation = [-10 * pi/180    10 * pi/180]; % [maxRot minRot]
+
     imageNames = {'NoTransNoRot','TransAndNoRot','TransAndRot'};
-%     imageNames = {'TransAndRot'};
+    
 
 %     method = {'PC','LADMM','GD'};    % Options: GD, PC, LADMM
-    method = {'LADMM'};    % Options: GD, PC, LADMM
+    method = {'PC','LADMM'};    % Options: GD, PC, LADMM
     tic;
 
     lw = 2;
@@ -65,7 +63,6 @@ function [] = makeFigures()
     ts = 16; % font size for tick marks
     
     for m = 1:numel(method)
-%     FBPrun = 0;
 
       for k = 1:numel(imageNames)
 
@@ -81,10 +78,20 @@ function [] = makeFigures()
 
         sinogram = radonWithRotAndTrans( im, pixSize, nDetectors, detSize, ...
            thetas, rotations, translations );
+         
+        figure('name','no noise'); imshow( imresize(sinogram,10,'nearest'),[])
+        fileName = [char(pwd) '/figures/sino' char(imageNames(k)) ...
+          '.eps'];
+        saveas(gcf,fileName,'epsc');
 
         noise = noiseLevel*randn(size(sinogram,1),size(sinogram,2));
         sinogram = sinogram + noise;
        
+        figure('name','with noise'); imshow( imresize(sinogram,10,'nearest'),[])
+        fileName = [char(pwd) '/figures/noisySino' char(imageNames(k)) ...
+          '.eps'];
+        saveas(gcf,fileName,'epsc');
+        
        if runFilteredBackProjection == 1 && m == 1
           recon = filteredBackProjection(sinogram, thetas, detSize, ...
               nCols, nRows, pixSize);
@@ -107,7 +114,6 @@ function [] = makeFigures()
             title('Reconstructed image');
           end
          
-%          FBPrun = 1;
        end
        
        if runPCandLADMM == 1;
@@ -120,8 +126,11 @@ function [] = makeFigures()
             [recon,costs] = ctCorrectForRotAndTrans( sinogram, nDetectors, ...
               detSize, thetas, rotations, translations, nCols, nRows, pixSize, ...
               'method', char(method(m)) );
-
           end
+          
+          fileName = [char(pwd) '/figures/' 'costData' char(method(m)) ...
+            char(imageNames(k)) '.mat'];
+          save(fileName, 'costs');
 
           figure; imshow( imresize(recon,10,'nearest'), [] );
           fileName = [char(pwd) '/figures/' 'img' char(method(m)) ...
@@ -143,6 +152,37 @@ function [] = makeFigures()
     end
     timeTaken = toc;
     display(['Time taken: ', num2str(timeTaken)])
+    
+  %% Plot learning curves from LADMM and PC on same graph
+  if plotLearningCurves == 1
+    
+    for k = 1:numel(imageNames)
+      fileName = [char(pwd) '/figures/costDataLADMM' char(imageNames(k)) '.mat'];
+      load (fileName)
+      costsLADMM = costs;
+      
+      fileName = [char(pwd) '/figures/costDataPC' char(imageNames(k)) '.mat'];
+      load (fileName)
+      costsPC = costs;
+      
+      figure; set(gca,'FontSize',ts) 
+      semilogy( costsPC, 'b', 'LineWidth', lw );
+      hold on;
+      semilogy( costsLADMM, 'r', 'LineWidth', lw);
+      axis([0 1000 1e-4 1])
+      xlabel('Iteration','FontSize',fs); 
+      ylabel('Cost Function','FontSize',fs);
+      legPos = [0.67, 0.77, 0.01, 0.001]; 
+      leg1 = legend('Pock-Chambolle','Linearized ADMM');
+      set(leg1,'Position',legPos,'FontSize',fs)
+   
+      fileName = [char(pwd) '/figures/' 'costsPCandLADMM' ...
+        char(imageNames(k)) '.eps'];
+      saveas(gcf,fileName,'epsc');
+      
+    end
+    
+  end
  
   %% cartoon explaining what modified radon transform is
   if runAnimation == 1;
@@ -172,11 +212,6 @@ function [] = makeFigures()
     end  
   end
   
-  %% autofocus result - no translation, with translation, with rotation and translation
-  if runAutoFocus == 1;
-    images = 1;
-    
-  end
   
   %% make blurry phantom to demonstrate image metrics
   if runBlurryPhantom == 1;
@@ -255,9 +290,6 @@ function [] = makeFigures()
     fileName = [char(pwd) '/figures/' 'metric_variance.eps'];
     saveas(gcf,fileName,'epsc');
   end
-  
-  %% compare to inverse radon transform - no translation, with translation, with rotation and translation
-
 
 
 end

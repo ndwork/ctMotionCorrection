@@ -8,43 +8,33 @@ function [recon,costs] = ctCorrectForRotAndTrans_LADMM( sinogram, ...
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
-%   maxIters = 1000;
-%   x0 = rand( nRows, nCols );
-%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
-%    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
-%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
-%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
-  load 'nrmK.mat';
-
   defaultLambda = [];
   defaultMu = [];
+  defaultR = [];
   p = inputParser;
   p.addOptional( 'lambda', defaultLambda, @isnumeric );
   p.addOptional( 'mu', defaultMu, @isnumeric );
+  p.addOptional( 'radonMatrix', defaultR );
   p.parse( varargin{:} );
   lambda = p.Results.lambda;
   mu = p.Results.mu;
+  R = p.Results.radonMatrix;
   
-  if numel(lambda)==0
-    lambda = 1d2;
-  end
-  if numel(mu) == 0
-    mu = lambda / (nrmK*nrmK);
-  end
-  
-  gamma = 1d-5;   % Regularization parameter
+  gamma = 1d-6;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
   applyD2 = @(u) cat(1, u(2:end,:) - u(1:end-1,:), zeros(1,nCols));
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
-  %  detSize, thetas);
-load 'RadonMatrix.mat';
+  if numel(R)==0
+    R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+      detSize, thetas);
+  end
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;
+  
   applyE = @(u) RWithRotAndTrans( u, rotations, translations_pix, ...
     nDetectors, R );
   %applyE = @(u) radonWithRotAndTrans( u, pixSize, nDetectors, ...
@@ -57,6 +47,29 @@ load 'RadonMatrix.mat';
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
   applyET = @(u) RTWithRotAndTrans( u, rotations, translations_pix, ...
     nCols, RT );
+  
+  
+  maxIters = 1000;
+  x0 = rand( nRows, nCols );
+  [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
+    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
+  
+  if numel( lambda ) == 0 && numel( mu ) == 0
+    minLambda = 1e-5; 
+    maxLambda = 1e5;
+    [lambda, mu] = findGoodStepSizes_LADMM( minLambda, maxLambda, nrmK, ...
+      sinogram, nDetectors, detSize, thetas, translations_m, nCols, ...
+      nRows, pixSize );
+%     load 'goodStepsLADMM_64x64.mat'
+  elseif numel( lambda ) == 0
+    mu = lambda/(nrmK*nrmK) * 0.9999;
+  end
+  %if u > lambda / (nrmK*nrmK)
+  %  error('Improperly chosen step sizes');
+  %end
+  
+  
 
   nThetas = numel( thetas );
   x = zeros( nRows, nCols );
@@ -67,14 +80,15 @@ load 'RadonMatrix.mat';
   zD1 = zeros( nRows, nCols );
   zD2 = zeros( nRows, nCols );
 
-  nIter = 10000;
+  nIter = 1000;
   costs = zeros(nIter,1);
-reconH = figure;
+%   reconH = figure;
+  minCost = 9999;  bestX = x; 
   for i=1:nIter
-    if mod(i,5)==0
+    if mod(i,50)==0
       disp(['Working on iteration ', num2str(i), ' of ', num2str(nIter)]);
-      figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
-      title(['Iteration ', num2str(i)]);  drawnow;
+%       figure(reconH);  imshow( imresize(x,10,'nearest'), [] );
+%       title(['Iteration ', num2str(i)]);  drawnow;
     end
 
     % Update x
@@ -90,6 +104,10 @@ reconH = figure;
     % Store cost
     costs(i) = 0.5*norm( Ex(:) - sinogram(:), 2 )^2 + ...
       gamma * norm( D1x(:), 1 ) + gamma * norm( D2x(:), 1 );
+    if costs(i) < minCost
+      minCost = costs(i);
+      bestX = x;
+    end
     
     % Update z
     Ex = applyE(x);
@@ -107,7 +125,7 @@ reconH = figure;
     xBarD1 = xBarD1 + D1x - zD1;
     xBarD2 = xBarD2 + D2x - zD2;
   end
-close( reconH );
+% close( reconH );
 
   recon = bestX;
 end
