@@ -10,13 +10,17 @@ function sinogram = RWithTranslation( img, translations_pix, nDet, R )
   [nTranslations,~] = size(translations_pix);
   if nTranslations ~= nThetas, error('Input error'); end;
 
-  parfor i=1:nThetas
-    thisTrans_pix = translations_pix(i,:);
+  parfor th=1:nThetas
+    thisTrans_pix = translations_pix(th,:);
     translated = translateImg( img, thisTrans_pix );
-    %sinogram(i,:) = R(nDet*(i-1)+1:nDet*i,:) * translated(:);
+
     tmpSino = R * translated(:);
     tmpSino = reshape( tmpSino, [nThetas nDet] );
-    sinogram(i,:) = tmpSino(i,:);
+    sinogram(th,:) = tmpSino(th,:);
+
+    %indxs1D = th + ((1:nDet)-1)*nThetas;
+    %results = R(indxs1D,:) * translated(:);
+    %sinogram(th,:) = results;
   end
 
 end
