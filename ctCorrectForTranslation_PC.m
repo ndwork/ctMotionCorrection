@@ -8,6 +8,18 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
+  defaultSigma = [];
+  defaultTau = [];
+  defaultR = [];
+  p = inputParser;
+  p.addOptional( 'sigma', defaultSigma, @isnumeric );
+  p.addOptional( 'tau', defaultTau, @isnumeric );
+  p.addOptional( 'radonMatrix', defaultR );
+  p.parse( varargin{:} );
+  sigma = p.Results.sigma;
+  tau = p.Results.tau;
+  R = p.Results.radonMatrix;
+  
   gamma = 1d-6;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
@@ -15,9 +27,10 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
-  %  detSize, thetas);
-  load 'RadonMatrix_32x32.mat';
+  if numel(R) == 0
+    R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+      detSize, thetas);
+  end
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;
@@ -35,39 +48,20 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
   %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
 
-  %maxIters = 1000;
-  %x0 = rand( nRows, nCols );
-  %[nrmK, lambdaVals] = estimateNormKByPowerIteration( applyE, applyET, ...   
-  %  applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
+  maxIters = 1000;
+  x0 = rand( nRows, nCols );
+  [nrmK, ~] = estimateNormKByPowerIteration( applyE, applyET, ...   
+    applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
   %figure;  plot(lambdaVals);  title('Lambda v Iteration');
-  %save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
-  load 'nrmK.mat';
 
-  defaultSigma = [];
-  defaultTau = [];
-  p = inputParser;
-  p.addOptional( 'sigma', defaultSigma, @isnumeric );
-  p.addOptional( 'tau', defaultTau, @isnumeric );
-  p.parse( varargin{:} );
-  sigma = p.Results.sigma;
-  tau = p.Results.tau;
   if numel( sigma ) == 0 && numel( tau ) == 0
     %sigma = 1/nrmK;
     %tau = 1/nrmK;
-    %minStep = 1e-5; 
-    %maxStep = 1e5;
-    %[sigma, tau] = findBestStepSizes_PC(minStep,... 
-    %maxStep, minStep, maxStep, nrmK, sinogram, nDetectors, ...
-    %detSize, thetas, translations_m, nCols, nRows, pixSize, 0);
-    %save( 'optimalSteps_64x64.mat','sigma', 'tau' );
-    %load 'optimalSteps.mat';
     minSigma = 1e-5; 
     maxSigma = 1e5;
-    %[sigma, tau] = findGoodStepSizes_PC( minSigma, maxSigma, nrmK, ...
-    %  sinogram, nDetectors, detSize, thetas, translations_m, nCols, ...
-    %  nRows, pixSize );
-    %save( 'goodStepsPC_32x32.mat', 'sigma', 'tau' );
-    load 'goodStepsPC_32x32.mat';
+    [sigma, tau] = findGoodStepSizes_PC( minSigma, maxSigma, nrmK, ...
+      sinogram, nDetectors, detSize, thetas, translations_m, nCols, ...
+      nRows, pixSize );
   elseif numel( sigma ) == 0
     tau = 1/(nrmK^2 * sigma );
   elseif numel( tau ) == 0
@@ -101,10 +95,7 @@ function [recon,costs] = ctCorrectForTranslation_PC( sinogram, ...
     D1xBar = applyD1( xBar );   tmpD1 = yD1 + sigma * D1xBar;
     D2xBar = applyD2( xBar );   tmpD2 = yD2 + sigma * D2xBar;
 
-    %tmpBefore = 0.5*yE(:)'*yE(:) + yE(:)'*sinogram(:) + 1/(2*sigma)*norm(yE(:)-tmpE(:),2)^2;
     yE = ( tmpE - sigma*sinogram ) / ( sigma + 1 );
-    %tmpAfter  = 0.5*yE(:)'*yE(:) + yE(:)'*sinogram(:) + 1/(2*sigma)*norm(yE(:)-tmpE(:),2)^2;
-    %disp(['Should be negative: ', num2str(tmpAfter-tmpBefore)]);
     yD1 = min( tmpD1, gamma );
     yD1 = max( yD1, -gamma );
     yD2 = min( tmpD2, gamma );

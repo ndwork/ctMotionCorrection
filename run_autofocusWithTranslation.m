@@ -34,30 +34,20 @@ function [finaltranslation] = run_autofocusWithTranslation()
     translations = zeros( nThetas, 2 );
   end
 
-  nonzeroRotations = 1;
-  if nonzeroRotations > 0
-    maxRotation = 6 * pi/180;
-    rotations = linspace(0,maxRotation,nThetas);
-  else
-    maxRotation = 0;
-    rotations = zeros(nThetas,1);
-  end
-  
   im = padImgForRadon( im, maxHorizontalShift*1.5, ...
     maxVerticalShift*1.5, pixSize );
   [nRows,nCols] = size(im);
 
-  sinogram = radonWithRotAndTrans( im, pixSize, nDetectors, detSize, ...
-   thetas, rotations, translations );
+  sinogram = radonWithTranslation( im, pixSize, nDetectors, detSize, ...
+   thetas, translations );
 
   maxX = maxHorizontalShift*1.5;
   maxY = maxVerticalShift*1.5;
   dx = maxHorizontalShift/2;
   dy = maxVerticalShift/2;
 
-  [finalTranslation,metric] = autofocusWithRotAndTrans(sinogram, ...
-    maxX, dx, maxY, dy, maxRot, dr, nRows, nCols, pixSize, detSize, ...
-    thetas, method);
+  [finalTranslation,metric] = autofocusWithTranslation(sinogram, ...
+    maxX, dx, maxY, dy, nRows, nCols, pixSize, detSize, thetas, method);
 
   translations = zeros( nThetas, 2 );
   translations(:,1) = linspace(0,finalTranslation(1),nThetas);

@@ -6,7 +6,7 @@ function R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
   R = sparse(nDetectors*nThetas,nCols*nRows);
   
   parfor i=1:nCols*nRows
-    if mod(i,10)==0
+    if mod(i,100)==0
       disp(['Making Radon Matrix ', num2str(i), ' of ', ...
         num2str(nRows*nCols)]);
     end

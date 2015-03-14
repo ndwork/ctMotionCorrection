@@ -171,11 +171,8 @@ function [] = testModules()
   nRowsPad = size(imgPad,1);
   nColsPad = size(imgPad,2);
   
-%   R = makeRadonMatrix( nColsPad, nRowsPad, pixelSize, nDetectors, ...
-%   detectorSize, thetas);
-%   save('Rmatrix.mat','R')
-  load('Rmatrix.mat')
-  
+  R = makeRadonMatrix( nColsPad, nRowsPad, pixelSize, nDetectors, ...
+    detectorSize, thetas);
   RT = transpose(R);
 
   applyE = @(u) RWithTranslation( u, translations_pix, nDetectors, R );

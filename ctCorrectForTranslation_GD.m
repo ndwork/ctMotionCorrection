@@ -1,14 +1,22 @@
 
 function recon = ctCorrectForTranslation_GD( sinogram, nDetectors, ...
-  detSize, thetas, translations_m, nCols, nRows, pixSize )
+  detSize, thetas, translations_m, nCols, nRows, pixSize, varargin )
   % This function uses Pock-Chambolle to determine the reconstruction
   % image based on the known translations
   % sinogram is an MxN array
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
-  R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
-    detSize, thetas);
+  defaultR = [];
+  p = inputParser;
+  p.addOptional( 'radonMatrix', defaultR );
+  p.parse( varargin{:} );
+  R = p.Results.radonMatrix;
+
+  if numel(R)==0
+    R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+      detSize, thetas);
+  end
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;

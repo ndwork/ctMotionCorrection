@@ -13,8 +13,8 @@ function sinogram = radonTransform( img, pixSize, nDetectors, ...
   dLocs = ( [0:nDetectors-1] - 0.5*(nDetectors-1) ) * detSize - dOffset;
   thetas_deg = thetas * 180/pi;
 
-  Ny = size( img, 1 );  halfY = Ny/2;
-  Nx = size( img, 2 );  halfX = Nx/2;
+  Ny = size( img, 1 );  halfY = (Ny+1)/2;
+  Nx = size( img, 2 );  halfX = (Nx+1)/2;
   xs = ones(Ny,1) * (1:Nx);
   ys = (1:Ny)' * ones(1,Nx);
   xs = xs - halfX;
@@ -22,11 +22,7 @@ function sinogram = radonTransform( img, pixSize, nDetectors, ...
   radiusMask = sqrt( xs.*xs + ys.*ys ) < min(Nx/2,Ny/2);
 	radiusImg = img .* radiusMask;
 
-  if mod( Nx, 2 )==0
-    locs = ( ([0:Nx-1]) - 0.5*Nx + 0.5 ) * pixSize;
-  else
-    locs = ( ([0:Nx-1]) - floor(0.5*Nx) ) * pixSize;
-  end
+  locs = ( (0:Nx-1) - 0.5*(Nx-1) ) * pixSize;
 
   M = makeLinearInterpMatrix( locs, dLocs );
 
@@ -44,7 +40,5 @@ function sinogram = radonTransform( img, pixSize, nDetectors, ...
   end
 
 end
-
-
 
 

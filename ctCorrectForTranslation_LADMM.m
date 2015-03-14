@@ -8,16 +8,29 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
   % translation is an Mx2 element array; each row of the array is the
   %   translation for the corresponding row of the sinogram
 
-  gamma = 1d-5;   % Regularization parameter
+  defaultLambda = [];
+  defaultMu = [];
+  defaultR = [];
+  p = inputParser;
+  p.addOptional( 'lambda', defaultLambda, @isnumeric );
+  p.addOptional( 'mu', defaultMu, @isnumeric );
+  p.addOptional( 'radonMatrix', defaultR );
+  p.parse( varargin{:} );
+  lambda = p.Results.lambda;
+  mu = p.Results.mu;
+  R = p.Results.radonMatrix;
+  
+  gamma = 1d-6;   % Regularization parameter
 
   applyD1 = @(u) cat(2, u(:,2:end) - u(:,1:end-1), zeros(nRows,1));
   applyD2 = @(u) cat(1, u(2:end,:) - u(1:end-1,:), zeros(1,nCols));
   applyD1T = @(u) cat(2, -u(:,1), u(:,1:end-2) - u(:,2:end-1), u(:,end-1));
   applyD2T = @(u) cat(1, -u(1,:), u(1:end-2,:) - u(2:end-1,:), u(end-1,:));
 
-  %R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
-  %  detSize, thetas);
-  load 'RadonMatrix_32x32.mat';
+  if numel(R)==0
+    R = makeRadonMatrix( nCols, nRows, pixSize, nDetectors, ...
+      detSize, thetas);
+  end
   RT = transpose(R);
 
   translations_pix = translations_m / pixSize;
@@ -33,32 +46,19 @@ function [recon,costs] = ctCorrectForTranslation_LADMM( sinogram, ...
   %applyET = @(u) radonWithTranslationAdjoint( u, thetas, ...
   %  detSize, cx, cy, nCols, nRows, pixSize, translations_m );
 
-%   maxIters = 1000;
-%   x0 = rand( nRows, nCols );
-%   [nrmK, lambdaVals] = estimateNormKByPowerIteration( ...
-%    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
-%   figure;  plot(lambdaVals);  title('Lambda v Iteration');
-%   save( 'nrmK.mat', 'nrmK', 'lambdaVals' );
-  load 'nrmK.mat';
+  maxIters = 1000;
+  x0 = rand( nRows, nCols );
+  [nrmK, ~] = estimateNormKByPowerIteration( ...
+    applyE, applyET, applyD1, applyD1T, applyD2, applyD2T, maxIters, x0 );
 
-  defaultLambda = [];
-  defaultMu = [];
-  p = inputParser;
-  p.addOptional( 'lambda', defaultLambda, @isnumeric );
-  p.addOptional( 'mu', defaultMu, @isnumeric );
-  p.parse( varargin{:} );
-  lambda = p.Results.lambda;
-  mu = p.Results.mu;
   if numel( lambda ) == 0 && numel( mu ) == 0
     minLambda = 1e-5; 
     maxLambda = 1e5;
     [lambda, mu] = findGoodStepSizes_LADMM( minLambda, maxLambda, nrmK, ...
       sinogram, nDetectors, detSize, thetas, translations_m, nCols, ...
       nRows, pixSize );
-save( 'goodStepsLADMM_32x32.mat', 'lambda', 'mu' );
-load 'goodStepsLADMM_32x32.mat';
   elseif numel( lambda ) == 0
-    mu = lambda/(nrmK*nrmK);
+    mu = lambda/(nrmK*nrmK) * 0.9999;
   end
   %if u > lambda / (nrmK*nrmK)
   %  error('Improperly chosen step sizes');
